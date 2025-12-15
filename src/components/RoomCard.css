@@ -3,7 +3,7 @@
   padding: 10px;              /* ⬅️ lebih rapat */
   border-radius: 8px;
   border: 2px solid #7a7a7a;
-  background-color: #ffffff;
+  background-color: #ada8a8;
   display: flex;
   flex-direction: row;
 }
@@ -13,32 +13,45 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap : 10px;
 }
 
 .room-no {
-  font-size: 28px;             /* ⬅️ dari 40 */
+  font-size: 35px;
   font-weight: 800;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
 }
 
 .room-name {
+ 
   background-color: #3f51b5;
   color: #ffffff;
   font-weight: 700;
-  font-size: 12px;             /* ⬅️ kecilkan */
+  font-size: 25px;          
   padding: 2px 6px;
   width: fit-content;
 }
 
 .room-temp {
-  font-size: 28px;             /* ⬅️ dari 42 */
-  font-weight: 700;
+  font-size: 50px;             
+  font-weight: 900;
   color: #3f51b5;
+  align-items: center;
+  gap: 2px;  
+}
+
+.temp-icon {
+  font-size: 5px;
+  line-height: 0.5;
+  gap : 1px;
 }
 
 /* DIVIDER */
 .room-divider {
-  width: 3px;                  /* ⬅️ lebih tipis */
+  width: 3px;                 
   background-color: rgba(0, 0, 0, 0.2);
   margin: 0 8px;
 }
@@ -49,20 +62,20 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  text-align: right;
+  text-align: left;
 }
 
 .label {
-  font-size: 11px;             /* ⬅️ kecil */
+  font-size: 11px;             
   font-weight: 600;
 }
 
 .value {
-  font-size: 26px;             /* ⬅️ dari 36 */
+  font-size: 26px;             
   font-weight: 800;
   color: #3f51b5;
 }
 
 .room-rh .value {
-  font-size: 30px;             /* ⬅️ dari 42 */
+  font-size: 30px;         
 }
