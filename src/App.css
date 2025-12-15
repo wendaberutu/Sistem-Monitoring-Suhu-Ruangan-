@@ -36,3 +36,28 @@
     transform: rotate(360deg);
   }
 }
+
+/* VIEWPORT TV */
+.tv-viewport {
+  width: 100vw;
+  height: calc(100vh - 36px); /* navbar tipis */
+  overflow: hidden;
+}
+
+/* CONTAINER PAGES */
+.tv-pages {
+  height: 100%;
+  display: flex;
+}
+
+/* SATU HALAMAN (5x3) — DIPADATKAN */
+.tv-page {
+  min-width: 100vw;
+  padding: 8px;                 /* ⬅️ dari 16 → 8 */
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;                     /* ⬅️ dari 16 → 8 */
+}
+
+

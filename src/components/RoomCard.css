@@ -1,0 +1,68 @@
+.room-card {
+  height: auto;              /* ⬅️ dari 170 → 140 */
+  padding: 10px;              /* ⬅️ lebih rapat */
+  border-radius: 8px;
+  border: 2px solid #7a7a7a;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: row;
+}
+
+/* LEFT */
+.room-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.room-no {
+  font-size: 28px;             /* ⬅️ dari 40 */
+  font-weight: 800;
+}
+
+.room-name {
+  background-color: #3f51b5;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 12px;             /* ⬅️ kecilkan */
+  padding: 2px 6px;
+  width: fit-content;
+}
+
+.room-temp {
+  font-size: 28px;             /* ⬅️ dari 42 */
+  font-weight: 700;
+  color: #3f51b5;
+}
+
+/* DIVIDER */
+.room-divider {
+  width: 3px;                  /* ⬅️ lebih tipis */
+  background-color: rgba(0, 0, 0, 0.2);
+  margin: 0 8px;
+}
+
+/* RIGHT */
+.room-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: right;
+}
+
+.label {
+  font-size: 11px;             /* ⬅️ kecil */
+  font-weight: 600;
+}
+
+.value {
+  font-size: 26px;             /* ⬅️ dari 36 */
+  font-weight: 800;
+  color: #3f51b5;
+}
+
+.room-rh .value {
+  font-size: 30px;             /* ⬅️ dari 42 */
+}
