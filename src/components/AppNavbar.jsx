@@ -10,7 +10,7 @@ export default function AppNavbar() {
   };
 
   const logoStyle = {
-    height: "24px",
+    height: "28px",
     marginRight: "8px",
   };
 
@@ -19,7 +19,7 @@ export default function AppNavbar() {
     alignItems: "center",
     lineHeight: "36px",
     color: "#ffffff",         
-    fontSize: "20px",
+    fontSize: "30px",
   };
 
   return (

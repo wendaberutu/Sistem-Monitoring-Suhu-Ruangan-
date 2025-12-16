@@ -53,11 +53,56 @@
 /* SATU HALAMAN (5x3) — DIPADATKAN */
 .tv-page {
   min-width: 100vw;
-  padding: 8px;                 /* ⬅️ dari 16 → 8 */
+  padding: 8px;                 
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  gap: 8px;                     /* ⬅️ dari 16 → 8 */
+  gap: 8px;                     
 }
 
+/* VIEWPORT TV */
+.tv-viewport {
+  width: 100vw;
+  height: calc(100vh - 36px);
+  overflow: hidden;
+}
 
+/* CONTAINER SEMUA PAGE */
+.tv-pages {
+  height: 100%;
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+/* SATU PAGE = 5x3 */
+.tv-page {
+  min-width: 100vw;
+  padding: 4px 6px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1px;
+  justify-items: center;
+  align-items: center;
+}
+
+/* TOMBOL SLIDE PAGE */
+.nav-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 42px;
+  background: rgba(0,0,0,0.2);
+  border: none;
+  color: white;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.nav-btn.left {
+  left: 10px;
+}
+
+.nav-btn.right {
+  right: 10px;
+}

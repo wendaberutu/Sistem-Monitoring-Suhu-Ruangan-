@@ -8,16 +8,11 @@ body,
 }
 
 #root {
-  background: linear-gradient(
-    180deg,
-    #0f2027 0%,
-    #203a43 50%,
-    #2c5364 100%
-  );
+background-color: #1f2933;
 }
 
 body {
-  overflow: hidden;
+  
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
     'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
     'Droid Sans', 'Helvetica Neue', sans-serif;
