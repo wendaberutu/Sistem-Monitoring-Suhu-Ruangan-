@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AppNavbar from "./components/AppNavbar";
 import RoomCard from "./components/RoomCard";
 import "./App.css";
@@ -12,22 +12,58 @@ function chunkArray(arr, size) {
 }
 
 function App() {
-const rooms = Array.from({ length: 28 }, (_, i) => ({
-  no: String(i + 1).padStart(2, "0"),
-  room: `RUANG ${i + 1}`,   // ⬅️ INI
-  temp: 20,
-  rh: 74,
-  lumens: 460,
-}));
-
-
-  const pages = chunkArray(rooms, 15);
+  const [rooms, setRooms] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
 
-  const prev = () =>
-    setPageIndex((p) => Math.max(0, p - 1));
-  const next = () =>
-    setPageIndex((p) => Math.min(pages.length - 1, p + 1));
+  useEffect(() => {
+    const fetchData = () => {
+      fetch("http://localhost:4000/api/monitoring/dashboard")
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.success) {
+            const mapped = res.data.map((item, index) => {
+              const temp = Math.round(item.suhu);
+
+              let tempStatus = "normal";
+              let priority = 2;
+
+              if (temp >= 23) {
+                tempStatus = "danger";
+                priority = 0;
+              } else if (temp >= 20 && temp <= 22) {
+                tempStatus = "warning";
+                priority = 1;
+              }
+
+              return {
+                no: String(index + 1).padStart(2, "0"),
+                room: item.ruang,
+                temp,
+                rh: Math.round(item.kelembapan),
+                lumens: Math.round(item.cahaya),
+                tempStatus,
+                priority,
+              };
+            });
+
+            // ⬅️ URUTKAN BERDASARKAN STATUS
+            mapped.sort((a, b) => a.priority - b.priority);
+
+            setRooms(mapped);
+          }
+        })
+        .catch(console.error);
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const pages = chunkArray(rooms, 15);
+
+  const prev = () => setPageIndex((p) => Math.max(0, p - 1));
+  const next = () => setPageIndex((p) => Math.min(pages.length - 1, p + 1));
 
   return (
     <>
@@ -51,10 +87,11 @@ const rooms = Array.from({ length: 28 }, (_, i) => ({
                   <RoomCard
                     key={r.no}
                     no={r.no}
-                    room={r.room}  
+                    room={r.room}
                     temp={r.temp}
                     rh={r.rh}
                     lumens={r.lumens}
+                    tempStatus={r.tempStatus}
                   />
                 ))}
               </div>
