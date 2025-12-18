@@ -1,34 +1,60 @@
+import { useEffect, useState } from "react";
 import Navbar from "react-bootstrap/Navbar";
 import Container from "react-bootstrap/Container";
 import logo from "../assets/logo_waleta3.png";
 
 export default function AppNavbar() {
-  const navbarStyle = {
-    paddingTop: 0,
-    paddingBottom: 0,
-    minHeight: "36px",
-  };
+  const [time, setTime] = useState(new Date());
 
-  const logoStyle = {
-    height: "28px",
-    marginRight: "8px",
-  };
-
-  const brandStyle = {
-    display: "flex",
-    alignItems: "center",
-    lineHeight: "36px",
-    color: "#ffffff",         
-    fontSize: "30px",
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <Navbar bg="dark" variant="dark" style={navbarStyle}>
+    <Navbar
+      bg="dark"
+      variant="dark"
+      style={{
+        minHeight: "50px",
+        position: "relative",   // ⬅️ penting
+      }}
+    >
       <Container fluid>
-        <Navbar.Brand style={brandStyle}>
-          <img src={logo} alt="logo" style={logoStyle} />
+        {/* KIRI */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            color: "#fff",
+            fontSize: "30px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <img
+            src={logo}
+            alt="logo"
+            style={{ height: "28px", marginRight: "8px" }}
+          />
           Monitoring Suhu & Ruangan
-        </Navbar.Brand>
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            right: "16px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            color: "#fff",
+            fontSize: "45px",
+            fontWeight: 500,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {time.toLocaleTimeString("id-ID")}
+        </div>
       </Container>
     </Navbar>
   );
