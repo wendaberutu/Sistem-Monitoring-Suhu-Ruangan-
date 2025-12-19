@@ -21,7 +21,7 @@ function App() {
         .then((res) => res.json())
         .then((res) => {
           if (res.success) {
-            const mapped = res.data.map((item, index) => {
+            const mapped = res.data.map((item) => {
               const temp = Math.round(item.suhu);
 
               let tempStatus = "normal";
@@ -36,15 +36,24 @@ function App() {
               }
 
               return {
-                no: String(index + 1).padStart(2, "0"),
+                // ✅ IDENTITAS TETAP
+                key: item.id_alat_monitor_suhu_kelembapan,
+                roomId: item.id_ruangan_gedung,
+                deviceId: item.id_alat_monitor_suhu_kelembapan,
+
+                // ✅ DISPLAY
+                no: String(item.id_ruangan_gedung).padStart(2, "0"),
                 room: item.ruang,
+
                 temp,
                 rh: Math.round(item.kelembapan),
                 lumens: Math.round(item.cahaya),
+
                 tempStatus,
                 priority,
               };
             });
+
 
             // ⬅️ URUTKAN BERDASARKAN STATUS
             mapped.sort((a, b) => a.priority - b.priority);

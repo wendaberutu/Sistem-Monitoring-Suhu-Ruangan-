@@ -19,7 +19,7 @@ export default function AppNavbar() {
       variant="dark"
       style={{
         minHeight: "50px",
-        position: "relative",   // ⬅️ penting
+        position: "relative",
       }}
     >
       <Container fluid>
@@ -41,16 +41,26 @@ export default function AppNavbar() {
           Monitoring Suhu & Ruangan
         </div>
 
+        {/* JAM */}
         <div
           style={{
             position: "absolute",
             right: "16px",
             top: "50%",
             transform: "translateY(-50%)",
-            color: "#fff",
+
+            // backgroun jam 
+            // background: "linear-gradient(135deg, #49515fff, #a7bae2ff)",
+            // padding: "6px 8px",
+            // borderRadius: "50px",
+
+            color: "#ffffff",
             fontSize: "45px",
-            fontWeight: 500,
+            fontWeight: 600,
+            letterSpacing: "1px",
             whiteSpace: "nowrap",
+
+            boxShadow: "0 0 12px rgba(59,130,246,0.6)",
           }}
         >
           {time.toLocaleTimeString("id-ID")}
