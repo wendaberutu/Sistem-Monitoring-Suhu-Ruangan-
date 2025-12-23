@@ -1,9 +1,43 @@
 import Card from "react-bootstrap/Card";
 import "./RoomCard.css";
+import AnimatedNumber from "../logic/AnimatedNumber";
 
 export default function RoomCard(props) {
-  const { no, room, temp, rh, lumens, tempStatus } = props;
+  const {
+    no,
+    room,
+    temp,
+    rh,
+    lumens,
+    tempStatus,
+    deviceMode,
+  } = props;
 
+  // OFF
+  if (deviceMode === "disconnected") {
+    return (
+      <Card className="room-card compact device-off">
+        <div className="disconnect-random">
+          <div className="disconnect-text">DISCONNECTED</div>
+        </div>
+      </Card>
+    );
+  }
+
+
+  // STANDBY
+  if (deviceMode === "loading") {
+    return (
+      <Card className="room-card compact device-standby">
+        <div className="room-center">
+          <div className="spinner" />
+          <span>Loading...</span>
+        </div>
+      </Card>
+    );
+  }
+
+  // ON → pakai tempStatus seperti SEMULA
   return (
     <Card className={`room-card compact temp-${tempStatus}`}>
       <div className="room-left">
@@ -11,7 +45,9 @@ export default function RoomCard(props) {
         <div className="room-name">{room}</div>
         <div className="room-temp">
           <span className="temp-icon">🌡</span>
-          <span className="temp-value">{temp}°c</span>
+          <span className="temp-value">
+            <AnimatedNumber value={temp} />°c
+          </span>
         </div>
       </div>
 
@@ -20,15 +56,18 @@ export default function RoomCard(props) {
       <div className="room-right">
         <div className="room-metric">
           <div className="metric-label-rh">RH</div>
-          <div className="metric-value-rh">{rh}%</div>
+          <div className="metric-value-rh">
+            <AnimatedNumber value={rh} />%
+          </div>
         </div>
 
         <div className="room-metric">
           <div className="metric-label-lumens">~LUMENS~</div>
-          <div className="metric-value-lumens">{lumens}</div>
+          <div className="metric-value-lumens">
+            <AnimatedNumber value={lumens} />
+          </div>
         </div>
       </div>
     </Card>
   );
 }
-

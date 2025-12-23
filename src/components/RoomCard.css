@@ -173,3 +173,61 @@
     box-shadow: 0 0 0px #ef4444;
   }
 }
+
+/* =========================
+   DISCONNECTED - RANDOM MOVE
+========================= */
+
+.device-off {
+  background: radial-gradient(
+    circle at center,
+    #2a2a2a,
+    #1b1b1b
+  );
+  border: 3px solid #e5e7eb;
+  overflow: hidden;
+}
+
+/* Container full card */
+.disconnect-random {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Text utama */
+.disconnect-text {
+  position: absolute;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow:
+    0 0 6px rgba(255, 255, 255, 0.6),
+    0 0 14px rgba(255, 255, 255, 0.4);
+  animation:
+    moveRandom 12s linear infinite,
+    blinkSoft 2.8s ease-in-out infinite;
+}
+
+/* Gerakan random dalam card */
+@keyframes moveRandom {
+  0%   { top: 10%; left: 10%; }
+  10%  { top: 70%; left: 20%; }
+  20%  { top: 40%; left: 60%; }
+  30%  { top: 15%; left: 80%; }
+  40%  { top: 60%; left: 50%; }
+  50%  { top: 75%; left: 10%; }
+  60%  { top: 30%; left: 30%; }
+  70%  { top: 55%; left: 75%; }
+  80%  { top: 20%; left: 45%; }
+  90%  { top: 65%; left: 65%; }
+  100% { top: 10%; left: 10%; }
+}
+
+/* Kedip halus */
+@keyframes blinkSoft {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.6; }
+}
