@@ -1,39 +1,14 @@
-function parseTimeToday(timeStr) {
-  if (!timeStr) return null;
+// Mapping status dari API ke mode UI
+export function mapDeviceStatusToMode(statusAlat) {
+  if (!statusAlat) return "disconnected";
 
-  const [h, m, s] = timeStr.split(":").map(Number);
-  if ([h, m, s].some(isNaN)) return null;
-
-  const now = new Date();
-  const t = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    h,
-    m,
-    s
-  );
-
-  if (t.getTime() > now.getTime()) {
-    t.setDate(t.getDate() - 1);
+  switch (statusAlat.toLowerCase()) {
+    case "on":
+      return "active";
+    case "standby":
+      return "loading";
+    case "off":
+    default:
+      return "disconnected";
   }
-
-  return t;
-}
-
-export function getDeviceStatus(timeStr) {
-  const last = parseTimeToday(timeStr);
-  if (!last) return "off";
-
-  const diffMinutes = (Date.now() - last.getTime()) / 60000;
-
-  if (diffMinutes <= 3) return "on";
-  if (diffMinutes <= 15) return "standby";
-  return "off";
-}
-
-export function mapDeviceStatusToMode(deviceStatus) {
-  if (deviceStatus === "standby") return "loading";
-  if (deviceStatus === "off") return "disconnected";
-  return "active";
 }

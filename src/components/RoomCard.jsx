@@ -13,19 +13,29 @@ export default function RoomCard(props) {
     deviceMode,
   } = props;
 
-  // OFF
+  // =========================
+  // OFF / DISCONNECTED
+  // =========================
   if (deviceMode === "disconnected") {
     return (
       <Card className="room-card compact device-off">
-        <div className="disconnect-random">
+        {/* Tetap tampilkan info ruangan */}
+        <div className="room-left">
+          <div className="room-no">{no}</div>
+          <div className="room-name">{room}</div>
+        </div>
+
+        {/* Overlay DISCONNECTED */}
+        <div className="disconnect-overlay">
           <div className="disconnect-text">DISCONNECTED</div>
         </div>
       </Card>
     );
   }
 
-
+  // =========================
   // STANDBY
+  // =========================
   if (deviceMode === "loading") {
     return (
       <Card className="room-card compact device-standby">
@@ -37,7 +47,9 @@ export default function RoomCard(props) {
     );
   }
 
-  // ON → pakai tempStatus seperti SEMULA
+  // =========================
+  // ON
+  // =========================
   return (
     <Card className={`room-card compact temp-${tempStatus}`}>
       <div className="room-left">
