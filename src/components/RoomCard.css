@@ -44,11 +44,21 @@
   margin-top: 2px;
   padding-right: 4px;
   margin-left: -10px;
+
+   /* ⬇️ KUNCI AREA */
+  min-height: 52px;       /* cukup untuk 2 baris */
+  line-height: 1.2;
+
+  display: flex;
+  align-items: center;    /* center vertikal */
+  justify-content: center;
+
+  word-break: break-word;
 }
 
 .room-temp {
   display: flex;
-  margin-top: 40px;
+  margin-top: 20px;
   align-items: baseline;
   margin-left: -6px;
 }
@@ -65,7 +75,7 @@
   font-weight: 900;
   color: #6EA8FF;
   line-height: 1;
-  margin-top: 5px;
+  
 }
 
 /* DIVIDER */
