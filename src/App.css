@@ -50,15 +50,21 @@
   display: flex;
 }
 
-/* SATU HALAMAN (5x3) — DIPADATKAN */
+/* SATU HALAMAN (5x3)*/
 .tv-page {
   min-width: 100%;
-  padding: 8px;                 
+  padding: 4px 6px;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   grid-template-rows: repeat(3, 1fr);
-  gap: 8px;                     
+  gap: 8px;
+
+  justify-items: stretch;
+  align-items: stretch;
+
+  box-sizing: border-box;
 }
+
 
 /* VIEWPORT TV */
 .tv-viewport {

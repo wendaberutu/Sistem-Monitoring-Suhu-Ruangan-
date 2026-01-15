@@ -55,7 +55,7 @@ export default function AppNavbar() {
             // borderRadius: "50px",
 
             color: "#ffffff",
-            fontSize: "45px",
+            fontSize: "30px",
             fontWeight: 600,
             letterSpacing: "1px",
             whiteSpace: "nowrap",
