@@ -39,7 +39,7 @@
 
 /* VIEWPORT TV */
 .tv-viewport {
-  width: 100vw;
+  width: 100%;
   height: calc(100vh - 36px); /* navbar tipis */
   overflow: hidden;
 }
@@ -52,7 +52,7 @@
 
 /* SATU HALAMAN (5x3) — DIPADATKAN */
 .tv-page {
-  min-width: 100vw;
+  min-width: 100%;
   padding: 8px;                 
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -62,7 +62,7 @@
 
 /* VIEWPORT TV */
 .tv-viewport {
-  width: 100vw;
+  width: 100%;
   height: calc(100vh - 36px);
   overflow: hidden;
 }
@@ -76,7 +76,7 @@
 
 /* SATU PAGE = 5x3 */
 .tv-page {
-  min-width: 100vw;
+  min-width: 100%;
   padding: 4px 6px;
   display: grid;
   grid-template-columns: repeat(5, 1fr);

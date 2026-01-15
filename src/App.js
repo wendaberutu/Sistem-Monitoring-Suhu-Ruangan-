@@ -37,8 +37,8 @@ export default function App() {
                     temp={r.temp}
                     rh={r.rh}
                     lumens={r.lumens}
-                    tempStatus={r.tempStatus}   // 🔥 tetap
-                    deviceMode={r.deviceMode}   // ⚙️ baru
+                    tempStatus={r.tempStatus}   
+                    deviceMode={r.deviceMode}  
                   />
                 ))}
               </div>
