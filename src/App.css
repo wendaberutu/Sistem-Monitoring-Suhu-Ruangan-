@@ -55,13 +55,12 @@
   min-width: 100%;
   padding: 4px 6px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-template-rows: repeat(3, 1fr);
   gap: 8px;
 
-  justify-items: stretch;
-  align-items: stretch;
-
+  justify-items: center;
+  align-items: center;
   box-sizing: border-box;
 }
 
@@ -73,23 +72,12 @@
   overflow: hidden;
 }
 
+
 /* CONTAINER SEMUA PAGE */
 .tv-pages {
   height: 100%;
   display: flex;
   transition: transform 0.5s ease;
-}
-
-/* SATU PAGE = 5x3 */
-.tv-page {
-  min-width: 100%;
-  padding: 4px 6px;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 1px;
-  justify-items: center;
-  align-items: center;
 }
 
 /* TOMBOL SLIDE PAGE */
