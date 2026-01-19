@@ -1,71 +1,50 @@
 import { useEffect, useState } from "react";
-import Navbar from "react-bootstrap/Navbar";
-import Container from "react-bootstrap/Container";
-import logo from "../assets/logo_waleta3.png";
+import { useLocation } from "react-router-dom";
+
+const TITLE_BY_PATH = {
+  "/rooms": "Monitoring Suhu & Kelembapan",
+  "/water": "Monitoring Water Treatment",
+  "/energy": "Monitoring Konsumsi Energi",
+};
 
 export default function AppNavbar() {
   const [time, setTime] = useState(new Date());
+  const { pathname } = useLocation();
+
+  const title = TITLE_BY_PATH[pathname] || "Monitoring Dashboard";
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-    return () => clearInterval(interval);
+    const i = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(i);
   }, []);
 
   return (
-    <Navbar
-      bg="dark"
-      variant="dark"
+    <div
       style={{
-        minHeight: "50px",
-        position: "relative",
+        height: "50px",
+        background: "#0f172a",
+        display: "flex",
+        alignItems: "center",
+        padding: "0 16px",
+        color: "#fff",
       }}
     >
-      <Container fluid>
-        {/* KIRI */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            color: "#fff",
-            fontSize: "30px",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <img
-            src={logo}
-            alt="logo"
-            style={{ height: "28px", marginRight: "8px" }}
-          />
-          Monitoring Suhu & Ruangan
-        </div>
+      {/* JUDUL */}
+      <div style={{ fontSize: "22px", fontWeight: 600 }}>
+        {title}
+      </div>
 
-        {/* JAM */}
-        <div
-          style={{
-            position: "absolute",
-            right: "16px",
-            top: "50%",
-            transform: "translateY(-50%)",
-
-            // backgroun jam 
-            // background: "linear-gradient(135deg, #49515fff, #a7bae2ff)",
-            // padding: "6px 8px",
-            // borderRadius: "50px",
-
-            color: "#ffffff",
-            fontSize: "30px",
-            fontWeight: 600,
-            letterSpacing: "1px",
-            whiteSpace: "nowrap",
-
-            boxShadow: "0 0 12px rgba(59,130,246,0.6)",
-          }}
-        >
-          {time.toLocaleTimeString("id-ID")}
-        </div>
-      </Container>
-    </Navbar>
+      {/* JAM */}
+      <div
+        style={{
+          marginLeft: "auto",
+          fontSize: "30px",
+          fontWeight: 600,
+          letterSpacing: "1px",
+        }}
+      >
+        {time.toLocaleTimeString("id-ID")}
+      </div>
+    </div>
   );
 }

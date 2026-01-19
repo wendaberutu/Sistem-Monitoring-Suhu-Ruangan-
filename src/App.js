@@ -1,69 +1,16 @@
-import { useState } from "react";
-import AppNavbar from "./components/AppNavbar";
-import RoomCard from "./components/RoomCard";
-import chunkArray from "./logic/chunkArray";
-import { useDashboardRooms } from "./logic/useDashboardRooms";
-import { fillPage } from "./logic/fillPage";
-import "./App.css";
-
-const PAGE_SIZE = 24;
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import AppLayout from "./layout/AppLayout";
+import RoomMonitoring from "./pages/RoomMonitoring";
 
 export default function App() {
-  const rooms = useDashboardRooms();
-  const [pageIndex, setPageIndex] = useState(0);
-
-  const pages = chunkArray(rooms, PAGE_SIZE);
-  const prev = () => setPageIndex(p => Math.max(0, p - 1));
-  const next = () =>
-    setPageIndex(p => Math.min(pages.length - 1, p + 1));
-
   return (
-    <>
-      <AppNavbar />
-
-      <div className="tv-wrapper">
-        <button
-          className="nav-btn left"
-          onClick={prev}
-          disabled={pageIndex === 0}
-        >
-          &laquo;
-        </button>
-
-        <div className="tv-viewport">
-          <div
-            className="tv-pages"
-            style={{ transform: `translateX(-${pageIndex * 100}%)` }}
-          >
-            {pages.map((page, i) => {
-              const filledPage = fillPage(page, PAGE_SIZE);
-
-              return (
-                <div className="tv-page" key={i}>
-                  {filledPage.map((r, idx) => (
-                    <RoomCard
-                      key={
-                        r.deviceMode === "empty"
-                          ? `empty-${i}-${idx}`
-                          : r.no
-                      }
-                      {...r}
-                    />
-                  ))}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <button
-          className="nav-btn right"
-          onClick={next}
-          disabled={pageIndex === pages.length - 1}
-        >
-          &raquo;
-        </button>
-      </div>
-    </>
+    <BrowserRouter>
+      <AppLayout>
+        <Routes>
+          <Route path="/" element={<Navigate to="/rooms" replace />} />
+          <Route path="/rooms" element={<RoomMonitoring />} />
+        </Routes>
+      </AppLayout>
+    </BrowserRouter>
   );
 }

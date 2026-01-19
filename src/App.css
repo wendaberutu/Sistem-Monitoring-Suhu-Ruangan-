@@ -1,3 +1,8 @@
+
+:root {
+  --sidebar-width: 220px;
+}
+
 .App {
   text-align: center;
 }
@@ -103,3 +108,38 @@
 .nav-btn.right {
   right: 10px;
 }
+
+
+.sidebar {
+  position: fixed;
+  top: var(--navbar-height);
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--navbar-height));
+  background: linear-gradient(180deg, #020617, #020617);
+  color: #e5e7eb;
+  z-index: 1000;
+  transition: transform 0.25s ease;
+}
+
+.sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.app-main {
+  position: relative;
+  margin-top: var(--navbar-height);
+  margin-left: var(--sidebar-width);
+  height: calc(100vh - var(--navbar-height));
+  transition: margin-left 0.25s ease;
+  overflow: hidden;
+}
+
+.app-main.sidebar-closed {
+  margin-left: 0;
+}
+
