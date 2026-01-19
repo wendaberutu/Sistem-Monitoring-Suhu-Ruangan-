@@ -54,11 +54,11 @@
 /* SATU HALAMAN (5x3)*/
 .tv-page {
   min-width: 100%;
-  padding: 4px 6px;
+  padding: 8px 10px;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  grid-template-rows: repeat(3, 1fr);
-  gap: 2px;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 8px;
   align-content: start; /* ⬅️ biar ke atas */
 
   justify-items: center;

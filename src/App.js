@@ -3,22 +3,30 @@ import AppNavbar from "./components/AppNavbar";
 import RoomCard from "./components/RoomCard";
 import chunkArray from "./logic/chunkArray";
 import { useDashboardRooms } from "./logic/useDashboardRooms";
+import { fillPage } from "./logic/fillPage";
 import "./App.css";
+
+const PAGE_SIZE = 24;
 
 export default function App() {
   const rooms = useDashboardRooms();
   const [pageIndex, setPageIndex] = useState(0);
-  const pages = chunkArray(rooms, 15);
 
-  const prev = () => setPageIndex((p) => Math.max(0, p - 1));
+  const pages = chunkArray(rooms, PAGE_SIZE);
+  const prev = () => setPageIndex(p => Math.max(0, p - 1));
   const next = () =>
-    setPageIndex((p) => Math.min(pages.length - 1, p + 1));
+    setPageIndex(p => Math.min(pages.length - 1, p + 1));
 
   return (
     <>
       <AppNavbar />
+
       <div className="tv-wrapper">
-        <button className="nav-btn left" onClick={prev}>
+        <button
+          className="nav-btn left"
+          onClick={prev}
+          disabled={pageIndex === 0}
+        >
           &laquo;
         </button>
 
@@ -27,26 +35,32 @@ export default function App() {
             className="tv-pages"
             style={{ transform: `translateX(-${pageIndex * 100}%)` }}
           >
-            {pages.map((page, i) => (
-              <div className="tv-page" key={i}>
-                {page.map((r) => (
-                  <RoomCard
-                    key={r.no}
-                    no={r.no}
-                    room={r.room}
-                    temp={r.temp}
-                    rh={r.rh}
-                    lumens={r.lumens}
-                    tempStatus={r.tempStatus}   
-                    deviceMode={r.deviceMode}  
-                  />
-                ))}
-              </div>
-            ))}
+            {pages.map((page, i) => {
+              const filledPage = fillPage(page, PAGE_SIZE);
+
+              return (
+                <div className="tv-page" key={i}>
+                  {filledPage.map((r, idx) => (
+                    <RoomCard
+                      key={
+                        r.deviceMode === "empty"
+                          ? `empty-${i}-${idx}`
+                          : r.no
+                      }
+                      {...r}
+                    />
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <button className="nav-btn right" onClick={next}>
+        <button
+          className="nav-btn right"
+          onClick={next}
+          disabled={pageIndex === pages.length - 1}
+        >
           &raquo;
         </button>
       </div>

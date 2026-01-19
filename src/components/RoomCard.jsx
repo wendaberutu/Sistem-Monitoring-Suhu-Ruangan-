@@ -47,6 +47,22 @@ export default function RoomCard(props) {
     );
   }
 
+  // ==============================
+  // empty mode 
+  // ====================
+
+if (deviceMode === "empty") {
+  return (
+    <Card className="room-card compact room-empty">
+      <div className="room-center">
+        <span className="empty-dash">—</span>
+      </div>
+    </Card>
+  );
+}
+
+
+
   // =========================
   // ON
   // =========================
