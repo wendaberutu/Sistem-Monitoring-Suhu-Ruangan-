@@ -50,6 +50,7 @@
   display: flex;
 }
 
+
 /* SATU HALAMAN (5x3)*/
 .tv-page {
   min-width: 100%;
@@ -57,18 +58,20 @@
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-template-rows: repeat(3, 1fr);
-  gap: 8px;
+  gap: 2px;
+  align-content: start; /* ⬅️ biar ke atas */
 
   justify-items: center;
   align-items: center;
   box-sizing: border-box;
+  min-height: 100%;
 }
 
 
 /* VIEWPORT TV */
 .tv-viewport {
   width: 100%;
-  height: calc(100vh - 36px);
+  height: 98%;
   overflow: hidden;
 }
 

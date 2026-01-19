@@ -10,7 +10,7 @@
   text-align: center;
 }
 .room-card.compact {
-  min-height: 260px;   /* ⬅️ kunci tinggi minimum */
+  min-height: 260px;   
   height: 100%;
   width: 100%;          
   box-sizing: border-box; 
@@ -31,14 +31,29 @@
 
 /* LEFT */
 .room-left {
-  margin-top: 15px;
   flex: 1;
   display: flex;
-   flex-direction: column;
-  justify-content: flex-start;
-  gap: 6px;
-  /*  kontrol jarak */
+  flex-direction: column;
 }
+
+.room-temp {
+  flex: 1;                       
+  display: flex;
+  align-items: center;            
+  justify-content: center;        
+  gap: 6px;
+  transform: translateX(-18px); 
+                   
+}
+
+.room-header {
+  height: 100px;          
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
 
 .room-no {
   font-weight: 900;
@@ -57,7 +72,7 @@
   padding: 4px 10px;
   border-radius: 3px;
   text-align: center;
-  margin-top: 2px;
+  margin-top: 5px;
   padding-right: 4px;
   margin-left: -10px;
 
@@ -66,32 +81,33 @@
   line-height: 1.2;
 
   display: flex;
-  align-items: center;    /* center vertikal */
+  align-items: center;    
   justify-content: center;
 
   word-break: break-word;
 }
 
-.room-temp {
-  display: flex;
-  margin-top: 20px;
-  align-items: baseline;
-  margin-left: -6px;
+.temp-icon {
+  font-size: 56px;
+  line-height: 1;
+  margin: 0;
+  color: #ffffff;
 }
 
-.temp-icon {
-  margin-top: 8px;
-  font-size: 50px;
-  color: #ffffff;
-  margin-right: -10px;
-
+.temp-unit {
+  font-size: 0.55em;
+  margin-left: 2px;
+  margin-bottom: 6px;   /* naikkan °C */
+  font-weight: 700;
 }
 
 .temp-value {
+  display: flex;
+  align-items: flex-end;
   font-weight: 900;
+  font-size: clamp(32px, 5vw, 60px);
   color: #6EA8FF;
   line-height: 1;
-  
 }
 
 /* DIVIDER */
@@ -110,7 +126,7 @@
 
 .room-metric {
   line-height: 1.1;
-  min-height: 90px; /* ⬅️ slot stabil */
+  min-height: 90px; 
 
 }
 
@@ -132,7 +148,7 @@
 }
 
 .metric-value-rh {
-  margin-top: 10px;
+  margin-top: 20px;
   font-weight: 1000;
   
   color: #6EA8FF;
