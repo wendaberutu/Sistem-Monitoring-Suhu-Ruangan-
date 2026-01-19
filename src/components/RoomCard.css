@@ -1,4 +1,16 @@
+.room-no {
+  font-size: clamp(24px, 4vw, 44px);
+}
+
+.temp-value,
+.metric-value-rh,
+.metric-value-lumens {
+  font-size: clamp(32px, 5vw, 60px);
+  word-break: break-word;
+  text-align: center;
+}
 .room-card.compact {
+  min-height: 260px;   /* ⬅️ kunci tinggi minimum */
   height: 100%;
   width: 100%;          
   box-sizing: border-box; 
@@ -10,6 +22,11 @@
   flex-shrink: 0;
   position: relative;  
   overflow: hidden;     
+}
+
+.room-left,
+.room-right {
+  min-width: 0;
 }
 
 /* LEFT */
@@ -24,7 +41,6 @@
 }
 
 .room-no {
-  font-size: 44px;
   font-weight: 900;
   color: #f9fafb;
   line-height: 1;
@@ -64,7 +80,7 @@
 }
 
 .temp-icon {
-  margin-top: 30px;
+  margin-top: 8px;
   font-size: 50px;
   color: #ffffff;
   margin-right: -10px;
@@ -72,8 +88,6 @@
 }
 
 .temp-value {
-  margin-top: 25px;
-  font-size: 60px;
   font-weight: 900;
   color: #6EA8FF;
   line-height: 1;
@@ -96,6 +110,8 @@
 
 .room-metric {
   line-height: 1.1;
+  min-height: 90px; /* ⬅️ slot stabil */
+
 }
 
 .metric-label-rh {
@@ -104,7 +120,7 @@
   color: #ffffff;
   letter-spacing: 5px;
   padding-left: 12px;
-  margin-bottom: -30px;
+  margin-bottom: -20px;
 }
 
 .metric-label-lumens {
@@ -117,17 +133,15 @@
 
 .metric-value-rh {
   margin-top: 10px;
-  font-size: 60px;
   font-weight: 1000;
   
   color: #6EA8FF;
   text-align: center;
-  margin-left: 45px;
+  margin-left: 10px;
 
 }
 
 .metric-value-lumens {
-  font-size: 60px;
   font-weight: 900;
   color: #6EA8FF;
   text-align: center;
