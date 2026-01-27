@@ -10,7 +10,7 @@
 }
 
 .room-no {
-  font-size: clamp(24px, 4vw, 44px);
+  font-size: clamp(24px, 2.4rem, 44px);
 }
 
 .temp-value,
@@ -116,7 +116,7 @@
   display: flex;
   align-items: flex-end;
   font-weight: 900;
-  font-size: clamp(32px, 5vw, 60px);
+  font-size: clamp(32px, 3.39rem, 60px);
   color: #6EA8FF;
   line-height: 1;
 }

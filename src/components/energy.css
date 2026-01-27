@@ -9,8 +9,8 @@
       transparent 60%
     ),
     linear-gradient(180deg, #191919, #0f0f0f);
-  border-top: 2px solid #ff7a00;
-  padding: 14px 24px 10px;
+  border-bottom: 2px solid #ff7a00;
+  padding: 2px 24px 0px;
 }
 
 /* container agar tab terlihat "menempel" */
@@ -30,7 +30,7 @@
   background: transparent;
   border: 1px solid rgba(255, 122, 0, 0.55);
   color: #e0e0e0;
-  padding: 8px 22px;
+  padding: 8px 20px;
   font-size: 14px;
   font-weight: 600;
   border-radius: 8px 8px 0 0;
