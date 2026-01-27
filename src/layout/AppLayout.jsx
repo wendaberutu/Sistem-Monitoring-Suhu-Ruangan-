@@ -3,7 +3,7 @@ import AppNavbar from "../components/AppNavbar";
 import AppSidebar from "../components/Sidebar";
 
 export default function AppLayout({ children }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
