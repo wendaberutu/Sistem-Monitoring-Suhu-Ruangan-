@@ -60,9 +60,6 @@ if (deviceMode === "empty") {
     </Card>
   );
 }
-
-
-
   // =========================
   // ON
   // =========================
@@ -87,7 +84,7 @@ if (deviceMode === "empty") {
       <div className="room-divider" />
 
       <div className="room-right">
-        <div className="room-metric">
+        <div className="room-metric rh">
           <div className="metric-label-rh">RH</div>
           <div className="metric-value-rh">
             <AnimatedNumber value={rh} />%

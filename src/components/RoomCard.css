@@ -1,38 +1,42 @@
+/* =====================================================
+   ROOT CONTEXT
+===================================================== */
+
+.room-card {
+  font-size: 1rem;
+}
+
+/* =====================================================
+   EMPTY CARD
+===================================================== */
+
 .room-card.room-empty {
   background-color: #1f2933;
   border: 2px dashed #475569;
 }
 
 .room-card.room-empty .empty-dash {
-  font-size: 28px;
+  font-size: 1.6em;
   color: #64748b;
   opacity: 0.4;
 }
 
-.room-no {
-  font-size: clamp(24px, 2.4rem, 44px);
-}
+/* =====================================================
+   CARD CONTAINER
+===================================================== */
 
-.temp-value,
-.metric-value-rh,
-.metric-value-lumens {
-  font-size: clamp(32px, 5vw, 60px);
-  word-break: break-word;
-  text-align: center;
-}
 .room-card.compact {
-  min-height: 260px;   
+  min-height: 260px;
   height: 100%;
-  width: 100%;          
-  box-sizing: border-box; 
+  width: 100%;
+  box-sizing: border-box;
   padding: 10px;
   background-color: #2b2b2b;
   border: 4px solid #8998ad;
   border-radius: 4px;
   display: flex;
-  flex-shrink: 0;
-  position: relative;  
-  overflow: hidden;     
+  position: relative;
+  overflow: hidden;
 }
 
 .room-left,
@@ -40,94 +44,97 @@
   min-width: 0;
 }
 
-/* LEFT */
+/* =====================================================
+   LEFT SIDE
+===================================================== */
+
 .room-left {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.room-temp {
-  flex: 1;                       
-  display: flex;
-  align-items: center;            
-  justify-content: center;        
-  gap: 6px;
-  transform: translateX(-18px); 
-                   
-}
-
 .room-header {
-  height: 100px;          
+  height: 100px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
+  gap: 0.3em;
 }
 
-
 .room-no {
+  font-size: 2.2em;
   font-weight: 900;
   color: #f9fafb;
   line-height: 1;
   text-align: center;
-  margin-top: 10px;
-  margin-bottom: 3px;
 }
 
 .room-name {
   background-color: #3b5cff;
   color: #ffffff;
-  font-size: 20px;
+  font-size: 1.2em;
   font-weight: 800;
   padding: 4px 10px;
   border-radius: 3px;
   text-align: center;
-  margin-top: 5px;
-  padding-right: 4px;
-  margin-left: -10px;
-
-   /*  KUNCI AREA */
-  min-height: 52px;       
+  min-height: 52px;
   line-height: 1.2;
 
   display: flex;
-  align-items: center;    
+  align-items: center;
   justify-content: center;
 
   word-break: break-word;
 }
 
-.temp-icon {
-  font-size: 56px;
-  line-height: 1;
-  margin: 0;
-  color: #ffffff;
+/* =====================================================
+   TEMPERATURE
+===================================================== */
+
+.room-temp {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  transform: translateX(-0.8em); /* menggeser suhu ke kiri sedikit */
 }
 
-.temp-unit {
-  font-size: 0.55em;
-  margin-left: 2px;
-  margin-bottom: 6px;   /* naikkan °C */
-  font-weight: 700;
+.temp-icon {
+  font-size: 3.4em;
+  line-height: 1;
+  color: #ffffff;
 }
 
 .temp-value {
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
   font-weight: 900;
-  font-size: clamp(32px, 3.39rem, 60px);
+  font-size: 3em;
   color: #6EA8FF;
   line-height: 1;
 }
 
-/* DIVIDER */
+.temp-unit {
+  font-size: 0.55em;
+  margin-left: 0.15em;
+  font-weight: 700;
+}
+
+/* =====================================================
+   DIVIDER
+===================================================== */
+
 .room-divider {
   width: 4px;
   background-color: #374151;
 }
 
-/* RIGHT */
+/* =====================================================
+   RIGHT SIDE
+===================================================== */
+
 .room-right {
   flex: 1;
   display: flex;
@@ -135,46 +142,67 @@
   justify-content: space-around;
 }
 
+/* =====================================================
+   METRIC (RH & LUMENS)
+===================================================== */
+
 .room-metric {
-  line-height: 1.1;
-  min-height: 90px; 
-
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  min-height: 90px;
 }
 
-.metric-label-rh {
-  font-size: 20px;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: 5px;
-  padding-left: 12px;
-  margin-bottom: -20px;
-}
-
+.metric-label-rh,
 .metric-label-lumens {
-  font-size: 20px;
+  font-size: 1.1em;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: 5px;
-  padding-left: 15px;
+  letter-spacing: 0.25em;
 }
 
-.metric-value-rh {
-  margin-top: 20px;
-  font-weight: 1000;
-  
-  color: #6EA8FF;
-  text-align: center;
-  margin-left: 10px;
-
-}
-
+.metric-value-rh,
 .metric-value-lumens {
+  font-size: 2.6em;
   font-weight: 900;
   color: #6EA8FF;
   text-align: center;
 }
+/* =====================================================
+   RH SPECIAL LAYOUT (LABEL KIRI ATAS ANGKA)
+===================================================== */
 
-/* status warning  */
+.room-metric.rh {
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Label RH di kiri atas angka */
+.room-metric.rh .metric-label-rh {
+  position: absolute;
+  top: 0;
+  left: 0.6em;
+
+  font-size: 1.2em;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+
+  transform: translate(0.2em, 0.2em);
+}
+
+/* Angka RH tetap besar & center */
+.room-metric.rh .metric-value-rh {
+  font-size: 2.8em;
+  font-weight: 900;
+  text-align: center;
+}
+
+/* =====================================================
+   WARNING & DANGER STATE
+===================================================== */
 
 .card.room-card.temp-warning {
   background-color: #ffad00;
@@ -201,38 +229,25 @@
   color: #fffbfb;
 }
 
-/* === BLINK EFFECT === */
+/* =====================================================
+   BLINK EFFECT
+===================================================== */
+
 @keyframes blink-yellow {
-  0% {
-    box-shadow: 0 0 0px #facc15;
-  }
-
-  50% {
-    box-shadow: 0 0 20px #facc15;
-  }
-
-  100% {
-    box-shadow: 0 0 0px #facc15;
-  }
+  0%   { box-shadow: 0 0 0px #facc15; }
+  50%  { box-shadow: 0 0 20px #facc15; }
+  100% { box-shadow: 0 0 0px #facc15; }
 }
 
 @keyframes blink-red {
-  0% {
-    box-shadow: 0 0 0px #ef4444;
-  }
-
-  50% {
-    box-shadow: 0 0 25px #ef4444;
-  }
-
-  100% {
-    box-shadow: 0 0 0px #ef4444;
-  }
+  0%   { box-shadow: 0 0 0px #ef4444; }
+  50%  { box-shadow: 0 0 25px #ef4444; }
+  100% { box-shadow: 0 0 0px #ef4444; }
 }
 
-/* =========================
-   DISCONNECTED - RANDOM MOVE
-========================= */
+/* =====================================================
+   DISCONNECTED STATE
+===================================================== */
 
 .device-off {
   position: relative;
@@ -241,26 +256,20 @@
   overflow: hidden;
 }
 
-/* Container full card */
 .disconnect-random {
   position: absolute;
   inset: 0;
-  padding-right: 60px; /* ⬅️ BATAS KANAN */
-  padding-left: 20px;
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding: 20px 60px 20px 20px;
   overflow: hidden;
 }
 
-/* Text utama */
 .disconnect-text {
   position: absolute;
   white-space: nowrap;
-
   color: #ffffff;
-  font-size: 22px;
+  font-size: 1.4em;
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 0.15em;
 
   text-shadow:
     0 0 6px rgba(255, 255, 255, 0.6),
@@ -271,9 +280,10 @@
     blinkSoft 2.8s ease-in-out infinite;
 }
 
-/* =========================
-   GERAK RANDOM AMAN
-========================= */
+/* =====================================================
+   RANDOM MOVE & BLINK
+===================================================== */
+
 @keyframes moveRandomSafe {
   0%   { top: 10%; left: 10%; }
   10%  { top: 70%; left: 20%; }
@@ -288,19 +298,16 @@
   100% { top: 10%; left: 10%; }
 }
 
-/* =========================
-   BLINK HALUS
-========================= */
 @keyframes blinkSoft {
   0%   { opacity: 0.6; }
   50%  { opacity: 1; }
   100% { opacity: 0.6; }
 }
 
-
-/* =========================
+/* =====================================================
    STANDBY CARD
-========================= */
+===================================================== */
+
 .room-card.device-standby {
   display: flex;
   align-items: center;
@@ -309,7 +316,6 @@
   border: 4px dashed #8998ad;
 }
 
-/* Container tengah */
 .room-center {
   display: flex;
   flex-direction: column;
@@ -320,9 +326,12 @@
   font-weight: 600;
 }
 
-/* =========================
-   SPINNER PUTIH
-========================= */
+
+
+/* =====================================================
+   SPINNER
+===================================================== */
+
 .spinner {
   width: 42px;
   height: 42px;
@@ -332,9 +341,6 @@
   animation: spin 0.9s linear infinite;
 }
 
-/* Animasi */
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
