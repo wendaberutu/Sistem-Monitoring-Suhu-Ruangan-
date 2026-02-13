@@ -22,24 +22,31 @@ export default function Login() {
   }
 
   setLoading(true);
+
   try {
     const res = await authApi.login({ username, password });
 
-    // ⬇️ AMBIL USER DARI RESPONSE LOGIN
-    const user = res.data.user;
+    const { token, user } = res.data;
 
-    setUser(user);
+    // ✅ simpan token
+    localStorage.setItem("token", token);
+
+    // ✅ simpan user
     localStorage.setItem("user", JSON.stringify(user));
+    setUser(user);
 
-    const roles = user.roles;
+    const permissions = user.permissions;
 
-    if (roles.includes("admin")) {
+    if (permissions.admin) {
       navigate("/admin");
-    } else if (roles.includes("verifier")) {
+    } else if (permissions.verifier) {
       navigate("/verify");
-    } else {
+    } else if (permissions.technician) {
       navigate("/technician");
+    } else {
+      navigate("/");
     }
+
   } catch (err) {
     if (!err.response) {
       setError("Server tidak dapat dihubungi");
@@ -50,8 +57,6 @@ export default function Login() {
     setLoading(false);
   }
 };
-
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950">
       <div className="w-[360px] rounded-2xl bg-slate-900/60 backdrop-blur-xl shadow-2xl px-7 py-8 text-slate-100">
