@@ -1,20 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import AppLayout from "./layout/AppLayout";
-import RoomMonitoring from "./pages/RoomMonitoring";
-import WaterMonitoring from "./pages/WaterMonitoring";
-import EnergyMonitoring from "./pages/EnergyMonitoring";
+
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import Login from "./pages/login";
+import { AuthProvider } from "./context/AuthContext";
 
 export default function App() {
-  return (
-    <BrowserRouter>
-      <AppLayout>
+   return (
+    <AuthProvider>
+      <Router>
         <Routes>
-          <Route path="/" element={<Navigate to="/rooms" replace />} />
-          <Route path="/rooms" element={<RoomMonitoring />} />
-          <Route path="/water" element={<WaterMonitoring />} />
-          <Route path="/energy" element={<EnergyMonitoring />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
-      </AppLayout>
-    </BrowserRouter>
+      </Router>
+    </AuthProvider>
   );
 }
