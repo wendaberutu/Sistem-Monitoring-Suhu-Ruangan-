@@ -1,4 +1,4 @@
-import Layout from "../../components/layout";
+import Layout from "../../layout/servicesLayout";
 
 export default function AdminDashboard() {
   const stats = [

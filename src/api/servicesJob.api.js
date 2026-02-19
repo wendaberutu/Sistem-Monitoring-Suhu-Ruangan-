@@ -1,10 +1,24 @@
-import ApiJob from './index.api.js';
+import ApiJob from "./index.api.js";
 
 /* ===============================
    GET ALL JOBS
 ================================= */
 export const getAllJobs = () => {
   return ApiJob.get("/jobs");
+};
+
+/* ===============================
+   GET JOB DETAIL + HISTORY
+================================= */
+export const getJobById = (jobId) => {
+  return ApiJob.get(`/jobs/${jobId}`);
+};
+
+/* ===============================
+   GET JOB BY QR UID
+================================= */
+export const getJobByUID = (uid) => {
+  return ApiJob.get(`/jobs/qr/${uid}`);
 };
 
 /* ===============================
@@ -15,6 +29,15 @@ export const createJob = (payload) => {
 };
 
 /* ===============================
+   ASSIGN TECHNICIAN (ADMIN)
+================================= */
+export const assignTechnician = (jobId, technician_id) => {
+  return ApiJob.patch(`/jobs/${jobId}/assign`, {
+    technician_id,
+  });
+};
+
+/* ===============================
    CLAIM JOB (TEKNISI)
 ================================= */
 export const claimJob = (jobId) => {
@@ -22,7 +45,7 @@ export const claimJob = (jobId) => {
 };
 
 /* ===============================
-   SUBMIT JOB
+   SUBMIT JOB (TEKNISI)
 ================================= */
 export const submitJob = (jobId, technician_action) => {
   return ApiJob.patch(`/jobs/${jobId}/submit`, {
@@ -33,9 +56,9 @@ export const submitJob = (jobId, technician_action) => {
 /* ===============================
    VERIFY JOB (VERIFIER)
 ================================= */
-export const verifyJob = (jobId, status, note = null) => {
+export const verifyJob = (jobId, result, note = null) => {
   return ApiJob.patch(`/jobs/${jobId}/verify`, {
-    status,
+    result,   // "approved" / "rejected"
     note,
   });
 };
@@ -46,5 +69,3 @@ export const verifyJob = (jobId, status, note = null) => {
 export const completeJob = (jobId) => {
   return ApiJob.patch(`/jobs/${jobId}/complete`);
 };
-
-

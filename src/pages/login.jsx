@@ -31,9 +31,10 @@ export default function Login() {
     // ✅ simpan token
     localStorage.setItem("token", token);
 
-    // ✅ simpan user
-    localStorage.setItem("user", JSON.stringify(user));
-    setUser(user);
+    // ✅ simpan user dengan username
+    const userWithUsername = { ...user, username };
+    localStorage.setItem("user", JSON.stringify(userWithUsername));
+    setUser(userWithUsername);
 
     const permissions = user.permissions;
 
