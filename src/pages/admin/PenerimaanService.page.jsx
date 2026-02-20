@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createJob, getAllJobs , getTechnicians} from "../../api/servicesJob.api";
+import { createJob, getAllJobs, getTechnicians } from "../../api/servicesJob.api";
 import Layout from "../../layout/servicesLayout";
 
 export default function ServicesPage() {
@@ -28,13 +28,13 @@ export default function ServicesPage() {
   }, []);
 
   const fetchTechnicians = async () => {
-  try {
-    const res = await getTechnicians();
-    setTechnicians(res.data.data || []);
-  } catch (err) {
-    console.error(err);
-  }
-};
+    try {
+      const res = await getTechnicians();
+      setTechnicians(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchJobs = async () => {
     try {
@@ -267,6 +267,19 @@ export default function ServicesPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
 
+
+              <div>
+                <label className="text-sm text-white">Nama Penyetor </label>
+                <input
+                  type="text"
+                  name="customer_name"
+                  value={formData.customer_name}
+                  onChange={handleChange}
+                  required
+                  className="w-full mt-1 px-3 py-2 rounded bg-slate-800 text-white border border-slate-600 focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
               <div>
                 <label className="text-sm text-white">Item Name / Nama Barang</label>
                 <input
@@ -280,7 +293,7 @@ export default function ServicesPage() {
               </div>
 
               <div>
-                <label className="text-sm text-white">Item Description / Deskripsi Barang</label>
+                <label className="text-sm text-white">Item Description / kelengkapan Barang</label>
                 <textarea
                   name="item_description"
                   value={formData.item_description}
