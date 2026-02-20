@@ -1,12 +1,25 @@
 import ApiJob from "./index.api.js";
 
 /* ===============================
+   GET ALL TECHNICIANS
+================================= */
+export const getTechnicians = () => {
+  return ApiJob.get("/technicians");
+};
+
+/* ===============================
    GET ALL JOBS
 ================================= */
 export const getAllJobs = () => {
   return ApiJob.get("/jobs");
 };
 
+/* ===============================
+   GET Technician's JOBS
+================================= */
+export const getTechnicianJobs = () => {
+  return ApiJob.get("/jobs/technician");
+};
 /* ===============================
    GET JOB DETAIL + HISTORY
 ================================= */
