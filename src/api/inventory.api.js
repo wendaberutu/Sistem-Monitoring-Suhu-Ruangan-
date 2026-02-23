@@ -29,13 +29,6 @@ export const addInventoryStock = (id, payload) => {
 };
 
 /* ===============================
-   SET INVENTORY STOCK
-================================= */
-export const setInventoryStock = (id, payload) => {
-  return apiClient.put(`/inventory/set-stock/${id}`, payload);
-};
-
-/* ===============================
    UPDATE INVENTORY ITEM
 ================================= */
 export const updateInventoryItem = (id, payload) => {
@@ -61,6 +54,10 @@ export const borrowInventoryItem = (payload) => {
 ================================= */
 export const returnInventoryItem = (payload) => {
   return apiClient.post("/inventory/return", payload);
+};
+
+export const returnInventoryQr = (payload) => {
+  return apiClient.post("/inventory/return-by-qr", payload);
 };
 
 /* ===============================
