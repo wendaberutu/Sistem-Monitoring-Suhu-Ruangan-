@@ -34,7 +34,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/inventory" element={<InventoryPage />} />
+          <Route
+            path="/admin/inventory"
+            element={
+              <ProtectedRoute>
+                <InventoryPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </Router>
