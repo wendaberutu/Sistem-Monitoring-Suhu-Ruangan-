@@ -26,11 +26,9 @@ export default function Login() {
   try {
     const res = await authApi.login({ username, password });
 
-    const { token, user } = res.data;
+    const { user } = res.data;
 
-    // ✅ simpan token
-    localStorage.setItem("token", token);
-
+    // ✅ cookies sudah disimpan otomatis via withCredentials
     // ✅ simpan user dengan username
     const userWithUsername = { ...user, username };
     localStorage.setItem("user", JSON.stringify(userWithUsername));
