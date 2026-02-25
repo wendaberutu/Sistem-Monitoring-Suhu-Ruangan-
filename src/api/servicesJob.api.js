@@ -4,7 +4,7 @@ import ApiJob from "./index.api.js";
    GET ALL TECHNICIANS
 ================================= */
 export const getTechnicians = () => {
-  return ApiJob.get("/technicians");
+  return ApiJob.get("/jobs/technicians");
 };
 
 /* ===============================

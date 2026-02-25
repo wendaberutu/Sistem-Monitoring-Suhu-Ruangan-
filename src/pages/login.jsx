@@ -28,8 +28,6 @@ export default function Login() {
 
     const { user } = res.data;
 
-    // ✅ cookies sudah disimpan otomatis via withCredentials
-    // ✅ simpan user dengan username
     const userWithUsername = { ...user, username };
     localStorage.setItem("user", JSON.stringify(userWithUsername));
     setUser(userWithUsername);
@@ -42,7 +40,13 @@ export default function Login() {
       navigate("/verify");
     } else if (permissions.technician) {
       navigate("/technician");
-    } else {
+    } else if (permissions.sanitasi) {
+      navigate("/sanitasi");
+    }else if (permissions.security) {
+      navigate("/security/penerimaan-service");
+    }else if (permissions.qc) {
+      navigate("/qc");
+    }else{
       navigate("/");
     }
 

@@ -1,55 +1,32 @@
 import { useEffect, useState } from "react";
-import { createJob, getAllJobs, getTechnicians } from "../../api/servicesJob.api";
+import { createJob, getAllJobs } from "../../api/servicesJob.api";
 import Layout from "../../layout/servicesLayout";
-import { assignTechnician } from "../../api/servicesJob.api";
+import QRCode from "qrcode";
 
 export default function ServicesPage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
-  const [technicians, setTechnicians] = useState([]);
-  const [enableAssign, setEnableAssign] = useState(false);
+
 
   // ✅ Modal state
   const [showModal, setShowModal] = useState(false);
 
   // ✅ Form state
   const [formData, setFormData] = useState({
-    customer_name: "",
     item_name: "",
     item_description: "",
     issue: "",
     technician_id: ""
   });
 
-  // ✅ Modal assign state
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [selectedTechnicianId, setSelectedTechnicianId] = useState("");
-
 
   useEffect(() => {
     fetchJobs();
-    fetchTechnicians();
+    
   }, []);
 
-  const fetchTechnicians = async () => {
-    try {
-      const res = await getTechnicians();
-      console.log("TECHNICIANS API RESPONSE:", res); // Debug
-      console.log("TECHNICIANS DATA:", res.data); // Debug
-
-      // Handle berbagai format response
-      const techData = res.data.data || res.data || [];
-      console.log("TECHNICIANS PARSED:", techData); // Debug
-
-      setTechnicians(techData);
-    } catch (err) {
-      console.error("Failed to fetch technicians:", err);
-      alert("Gagal mengambil data teknisi: " + (err.response?.data?.message || err.message));
-    }
-  };
 
   const fetchJobs = async () => {
     try {
@@ -65,45 +42,67 @@ export default function ServicesPage() {
 
   // ✅ Handle input change
   const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
+    setFormData({
+      ...formData,
       [e.target.name]: e.target.value
-    }));
+    });
   };
 
-
-  const handleSubmit = async (e) => {
+  // ✅ Submit create job
+const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
-    await createJob({
-      nama_penyetor: formData.customer_name,
+    const res = await createJob({
       item_name: formData.item_name,
       item_description: formData.item_description,
       reported_issue: formData.issue,
-      technician_id: enableAssign && formData.technician_id
-        ? Number(formData.technician_id)
-        : null
+      nama_penyetor: formData.customer_name,
+      technician_id: null
     });
 
-    alert("Service berhasil ditambahkan!");
+    const createdJob = res.data.data;
+
+    const qrDataUrl = await QRCode.toDataURL(createdJob.qr_code_uid);
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print QR Service</title>
+          <style>
+            body { font-family: Arial; text-align: center; }
+            img { width: 200px; }
+          </style>
+        </head>
+        <body>
+          <h3>ID Service: ${createdJob.id}</h3>
+          <p>${createdJob.item_name}</p>
+          <p>Penyetor: ${createdJob.nama_penyetor}</p>
+          <img src="${qrDataUrl}" />
+          <p>${createdJob.qr_code_uid}</p>
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
 
     setShowModal(false);
-    setFormData({
-      customer_name: "",
-      item_name: "",
-      item_description: "",
-      issue: "",
-      technician_id: ""
-    });
-    setEnableAssign(false);
-
     fetchJobs();
+
   } catch (err) {
-    alert("Gagal menambahkan service: " + (err.response?.data?.message || err.message));
+    console.error(err);
   }
 };
-
+  const handleEdit = (job) => {
+    // Navigate to edit page or open edit modal (adjust route as needed)
+    window.location.href = `/admin/penerimaan-service/edit/${job.id}`;
+  };
 
   const handleDelete = (job) => {
     if (!window.confirm("Hapus data service ini?")) return;
@@ -133,31 +132,6 @@ export default function ServicesPage() {
   // Slice to show only requested entries per page
   const displayedJobs = filteredJobs.slice(0, entriesPerPage);
 
-
-
-  const handleAssignClick = (job) => {
-    setSelectedJob(job);
-    setShowAssignModal(true);
-  };
-
-  const handleAssignSubmit = async () => {
-    if (!selectedTechnicianId) {
-      alert("Pilih teknisi terlebih dahulu!");
-      return;
-    }
-
-    try {
-      await assignTechnician(selectedJob.id, selectedTechnicianId);
-      alert("Teknisi berhasil di-assign!");
-      setShowAssignModal(false);
-      setSelectedJob(null);
-      setSelectedTechnicianId("");
-      fetchJobs();
-    } catch (err) {
-      alert(err.response?.data?.message || "Gagal assign teknisi");
-    }
-  };
-
   return (
     <Layout>
       <div className="p-6">
@@ -167,7 +141,7 @@ export default function ServicesPage() {
           <button
             onClick={() => setShowModal(true)}
             className="bg-gradient-to-r from-cyan-500/60 via-sky-500/15 to-blue-600/70 text-white px-4 py-2 rounded-md hover:opacity-90 transition">
-            ADD Service 
+            Tambah Service
           </button>
 
           <div className="flex gap-4 items-center">
@@ -245,7 +219,7 @@ export default function ServicesPage() {
                       <td className="px-6 py-4">
                         {job.technician_name || (
                           <span className="text-slate-400 italic">
-                           Not Assigned
+                            Not Assigned
                           </span>
                         )}
                       </td>
@@ -275,10 +249,10 @@ export default function ServicesPage() {
                           </button>
 
                           <button
-                            onClick={() => handleAssignClick(job)}
-                            className="text-sm bg-indigo-600 text-white px-3 py-1 rounded-md hover:bg-indigo-700"
+                            onClick={() => handleEdit(job)}
+                            className="text-sm bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600"
                           >
-                            Assign
+                            Edit
                           </button>
 
                           <button
@@ -356,43 +330,6 @@ export default function ServicesPage() {
                 />
               </div>
 
-              <div>
-                <label className="text-sm text-white block mb-2">
-                  Teknisi yang Dipilih
-                </label>
-
-                <div className="flex items-center gap-2 mb-2">
-                  <input
-                    type="checkbox"
-                    checked={enableAssign}
-                    onChange={(e) => {
-                      setEnableAssign(e.target.checked);
-                      if (!e.target.checked) {
-                        setFormData({ ...formData, technician_id: "" });
-                      }
-                    }}
-                  />
-                  <span className="text-red-400 text-sm">
-                    Aktifkan Checklist untuk Pilih Teknisi
-                  </span>
-                </div>
-
-                <select
-                  disabled={!enableAssign}
-                  name="technician_id"
-                  value={formData.technician_id}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 rounded bg-slate-800 text-white border border-slate-600 disabled:opacity-50"
-                >
-                  <option value="">-- Pilih Teknisi --</option>
-                  {technicians.map((tech) => (
-                    <option key={tech.id_pegawai} value={tech.id_pegawai}>
-                      {tech.nama_pegawai}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
@@ -410,57 +347,6 @@ export default function ServicesPage() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Assign Teknisi */}
-      {showAssignModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-slate-900 w-full max-w-md rounded-xl p-6 shadow-2xl border border-white/10">
-            <h2 className="text-xl font-bold mb-4 text-white">
-              Assign Teknisi - Service ID {selectedJob?.id}
-            </h2>
-
-            <div className="mb-4">
-              <p className="text-sm text-slate-300 mb-2">Item: <span className="font-semibold">{selectedJob?.item_name}</span></p>
-              <p className="text-sm text-slate-300 mb-4">Teknisi saat ini: <span className="font-semibold">{selectedJob?.technician_name || "Belum dipilih"}</span></p>
-            </div>
-
-            <div className="mb-4">
-              <label className="text-sm text-white block mb-2">Pilih Teknisi</label>
-              <select
-                value={selectedTechnicianId}
-                onChange={(e) => setSelectedTechnicianId(e.target.value)}
-                className="w-full px-3 py-2 rounded bg-slate-800 text-white border border-slate-600 focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">-- Pilih Teknisi --</option>
-                {technicians.map((tech) => (
-                  <option key={tech.id_pegawai} value={tech.id_pegawai}>
-                    {tech.nama_pegawai}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowAssignModal(false);
-                  setSelectedJob(null);
-                  setSelectedTechnicianId("");
-                }}
-                className="px-4 py-2 rounded bg-slate-600 text-white hover:bg-slate-700"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleAssignSubmit}
-                className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700"
-              >
-                Assign
-              </button>
-            </div>
           </div>
         </div>
       )}

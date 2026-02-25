@@ -18,6 +18,10 @@ const menuByRole = {
     { label: "Verifikasi Pekerjaan", to: "/verify/tasks", icon: "✅" },
     { label: "Riwayat Verifikasi", to: "/verify/history", icon: "📜" },
   ],
+  security : [
+    { label: "Penerimaan Service", to: "/security/penerimaan-service", icon: "🛠️" },
+  ]
+
 };
 
 export default function AppSidebar({ isOpen }) {
@@ -30,6 +34,7 @@ export default function AppSidebar({ isOpen }) {
     if (user?.permissions?.admin) return "admin";
     if (user?.permissions?.verifier) return "verifier";
     if (user?.permissions?.technician) return "technician";
+    if (user?.permissions?.security) return "security";
     return null;
   };
 

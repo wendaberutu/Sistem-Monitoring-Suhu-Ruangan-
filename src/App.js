@@ -4,45 +4,69 @@ import {
   Routes,
   Navigate,
 } from "react-router-dom";
+
 import Login from "./pages/login";
+
 import AdminPage from "./pages/admin/admin.page";
 import Penerimaan from "./pages/admin/PenerimaanService.page";
+import InventoryPage from "./pages/admin/inventory.page";
+
+import PenerimaanSecurity from "./pages/security/penerimaanServisSecurity";
+
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
-import InventoryPage from "./pages/admin/inventory.page";
 
 export default function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
+
+          {/* ================= LOGIN ================= */}
           <Route path="/login" element={<Login />} />
 
+          {/* ================= ADMIN ================= */}
           <Route
             path="/admin"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute role="admin">
                 <AdminPage />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/penerimaan-service"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute role="admin">
                 <Penerimaan />
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/inventory"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute role="admin">
                 <InventoryPage />
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/login" />} />
+
+          {/* ================= SECURITY ================= */}
+
+          <Route
+            path="/security/penerimaan-service"
+            element={
+              <ProtectedRoute role="security">
+                <PenerimaanSecurity />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ================= DEFAULT ================= */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
         </Routes>
       </Router>
     </AuthProvider>
