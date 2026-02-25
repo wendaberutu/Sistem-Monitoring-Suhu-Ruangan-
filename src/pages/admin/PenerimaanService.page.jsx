@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createJob, getAllJobs, getTechnicians } from "../../api/servicesJob.api";
+import { createJob, getAllJobs, getTechnicians, deleteJob} from "../../api/servicesJob.api";
 import Layout from "../../layout/servicesLayout";
 import { assignTechnician } from "../../api/servicesJob.api";
 
@@ -10,6 +10,7 @@ export default function ServicesPage() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [technicians, setTechnicians] = useState([]);
   const [enableAssign, setEnableAssign] = useState(false);
+ 
 
   // ✅ Modal state
   const [showModal, setShowModal] = useState(false);
@@ -105,13 +106,16 @@ export default function ServicesPage() {
 };
 
 
-  const handleDelete = (job) => {
-    if (!window.confirm("Hapus data service ini?")) return;
-    // Optimistic UI update — remove from local state
-    setJobs((prev) => prev.filter((j) => j.id !== job.id));
-    console.log("Deleted job (optimistic):", job);
-    // TODO: call delete API to persist removal
-  };
+const handleDelete = async (job) => {
+  if (!window.confirm("Hapus data service ini?")) return;
+
+  try {
+    await deleteJob(job.id);
+    fetchJobs();
+  } catch (err) {
+    alert(err.response?.data?.message || "Gagal hapus data");
+  }
+};
 
   const handlePrint = (job) => {
     const printWindow = window.open("", "_blank");

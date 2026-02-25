@@ -1,3 +1,5 @@
+// src/context/AuthContext.jsx
+
 import { createContext, useContext, useState, useEffect } from "react";
 import { authApi } from "../api/auth.api";
 
@@ -8,18 +10,20 @@ export const AuthProvider = ({ children }) => {
     const saved = localStorage.getItem("user");
     return saved ? JSON.parse(saved) : null;
   });
+
   const [loading, setLoading] = useState(true);
 
-  // ✅ Check session saat app pertama kali load
   useEffect(() => {
     const checkSession = async () => {
       try {
         const res = await authApi.me();
-        const userWithUsername = { ...res.data.user, username: res.data.user.username };
-        setUser(userWithUsername);
-        localStorage.setItem("user", JSON.stringify(userWithUsername));
+
+        if (res?.data?.user) {
+          setUser(res.data.user);
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+        }
       } catch (err) {
-        // Session tidak valid atau sudah expired
+        console.error("Session invalid");
         setUser(null);
         localStorage.removeItem("user");
       } finally {
@@ -32,10 +36,11 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await authApi.logout(); // Clear cookies di backend
+      await authApi.logout();
     } catch (err) {
       console.error("Logout error:", err);
     }
+
     setUser(null);
     localStorage.removeItem("user");
   };

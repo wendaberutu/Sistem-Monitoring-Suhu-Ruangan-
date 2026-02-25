@@ -82,3 +82,10 @@ export const verifyJob = (jobId, result, note = null) => {
 export const completeJob = (jobId) => {
   return ApiJob.patch(`/jobs/${jobId}/complete`);
 };
+
+/* ===============================
+   DELETE JOB (ADMIN)
+================================= */
+export const deleteJob = (jobId) => {
+  return ApiJob.delete(`/jobs/${jobId}`);
+};

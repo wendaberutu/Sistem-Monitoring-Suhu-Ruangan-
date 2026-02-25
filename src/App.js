@@ -10,8 +10,9 @@ import Login from "./pages/login";
 import AdminPage from "./pages/admin/admin.page";
 import Penerimaan from "./pages/admin/PenerimaanService.page";
 import InventoryPage from "./pages/admin/inventory.page";
-
 import PenerimaanSecurity from "./pages/security/penerimaanServisSecurity";
+import TechnicianPage from "./pages/technician/technician.page";
+import Claimjob from "./pages/technician/claimTask";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
@@ -63,6 +64,25 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* ================= TECHNICIAN ================= */}
+          <Route
+            path="/technician"
+            element={
+              <ProtectedRoute role="technician">
+                <TechnicianPage /> 
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/technician/claim"
+            element={
+              <ProtectedRoute role="technician">
+                <Claimjob />
+              </ProtectedRoute>
+            }
+          />
+
 
           {/* ================= DEFAULT ================= */}
           <Route path="/" element={<Navigate to="/login" replace />} />

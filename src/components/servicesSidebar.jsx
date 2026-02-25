@@ -10,6 +10,7 @@ const menuByRole = {
   ],
   technician: [
     { label: "Dashboard", to: "/technician", icon: "📊" },
+    { label: "klaim Tugas", to: "/technician/claim", icon: "📋" },
     { label: "Tugas Saya", to: "/technician/jobs", icon: "🛠️" },
     { label: "Riwayat Pekerjaan", to: "/technician/history", icon: "📜" },
   ],
