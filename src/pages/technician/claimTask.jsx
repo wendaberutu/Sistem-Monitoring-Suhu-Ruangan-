@@ -1,27 +1,40 @@
+import { useEffect, useState } from "react";
 import Layout from "../../layout/servicesLayout";
+import { getAvailableJobs, claimJob } from "../../api/servicesJob.api";
 
 export default function ClaimTaskPage() {
+  const [availableTasks, setAvailableTasks] = useState([]);
+  const [loadingId, setLoadingId] = useState(null);
 
-  const availableTasks = [
-    {
-      id: "JOB-101",
-      title: "Perbaikan AC Ruang 402",
-      location: "Gedung A",
-      priority: "High",
-    },
-    {
-      id: "JOB-102",
-      title: "Ganti Lampu Lobby",
-      location: "Gedung B",
-      priority: "Medium",
-    },
-  ];
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+const fetchJobs = async () => {
+  try {
+    const res = await getAvailableJobs();
+    setAvailableTasks(res.data.data || []);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+  const handleClaim = async (id) => {
+    try {
+      setLoadingId(id);
+      await claimJob(id);
+      fetchJobs();
+    } catch (err) {
+      alert(err.response?.data?.message || "Gagal claim");
+    } finally {
+      setLoadingId(null);
+    }
+  };
 
   return (
     <Layout variant="technician">
       <div className="min-h-screen w-full text-white relative overflow-hidden">
 
-        {/* Glow Background */}
         <div className="absolute inset-0 pointer-events-none
           bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.15),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(37,99,235,0.12),transparent_40%)]" />
 
@@ -67,12 +80,11 @@ export default function ClaimTaskPage() {
 
           </div>
 
-
           {/* ================= MANUAL CLAIM LIST ================= */}
           <div className="bg-[#111c2e]/80 backdrop-blur-md border border-blue-500/20 rounded-3xl p-10 shadow-lg">
 
             <h3 className="text-2xl font-semibold mb-8">
-              Klaim Manual (Tugas Tersedia)
+              Klaim Tugas Tersedia
             </h3>
 
             <div className="space-y-6">
@@ -92,21 +104,23 @@ export default function ClaimTaskPage() {
                     </p>
 
                     <h4 className="text-lg font-semibold text-white">
-                      {task.title}
+                      {task.item_name}
                     </h4>
 
                     <p className="text-sm text-blue-200/70 mt-1">
-                      {task.location} • {task.priority}
+                      {task.reported_issue}
                     </p>
                   </div>
 
                   <button
+                    onClick={() => handleClaim(task.id)}
+                    disabled={loadingId === task.id}
                     className="px-6 py-3 rounded-xl font-semibold
                       bg-[#1e293b] hover:bg-blue-600
                       border border-blue-400/20
                       transition shadow"
                   >
-                    Klaim
+                    {loadingId === task.id ? "Mengambil..." : "Klaim"}
                   </button>
 
                 </div>

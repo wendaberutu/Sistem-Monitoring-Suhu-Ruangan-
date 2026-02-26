@@ -51,6 +51,13 @@ export const assignTechnician = (jobId, technician_id) => {
 };
 
 /* ===============================
+   GET AVAILABLE JOBS (TEKNISI)
+================================= */
+export const getAvailableJobs = () => {
+  return ApiJob.get("/jobs/available");
+};
+
+/* ===============================
    CLAIM JOB (TEKNISI)
 ================================= */
 export const claimJob = (jobId) => {
@@ -84,8 +91,9 @@ export const completeJob = (jobId) => {
 };
 
 /* ===============================
-   DELETE JOB (ADMIN)
+   DELETE JOB (ADMIN)F
 ================================= */
 export const deleteJob = (jobId) => {
   return ApiJob.delete(`/jobs/${jobId}`);
 };
+
