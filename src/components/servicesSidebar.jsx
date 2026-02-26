@@ -16,8 +16,8 @@ const menuByRole = {
   ],
   verifier: [
     { label: "Dashboard", to: "/verify", icon: "📊" },
-    { label: "Verifikasi Pekerjaan", to: "/verify/tasks", icon: "✅" },
-    { label: "Riwayat Verifikasi", to: "/verify/history", icon: "📜" },
+    { label: "klaim Tugas", to: "/verify/claim", icon: "📋" },
+     { label: "Tugas Saya", to: "/verify/jobs", icon: "🛠️" },
   ],
   security : [
     { label: "Penerimaan Service", to: "/security/penerimaan-service", icon: "🛠️" },

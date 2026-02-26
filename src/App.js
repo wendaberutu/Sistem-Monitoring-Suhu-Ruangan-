@@ -14,6 +14,7 @@ import PenerimaanSecurity from "./pages/security/penerimaanServisSecurity";
 import TechnicianPage from "./pages/technician/technician.page";
 import Claimjob from "./pages/technician/claimTask";
 import MyJobsPage from "./pages/technician/jobs.page";
+import VerifierJobsPage from "./pages/verify/VerifierJobsPage";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
@@ -23,7 +24,6 @@ export default function App() {
     <AuthProvider>
       <Router>
         <Routes>
-
           {/* ================= LOGIN ================= */}
           <Route path="/login" element={<Login />} />
 
@@ -71,7 +71,7 @@ export default function App() {
             path="/technician"
             element={
               <ProtectedRoute role="technician">
-                <TechnicianPage /> 
+                <TechnicianPage />
               </ProtectedRoute>
             }
           />
@@ -92,11 +92,36 @@ export default function App() {
             }
           />
 
+          {/* ================= VERIFIER ================= */}
+          <Route
+            path="/verify"
+            element={
+              <ProtectedRoute role="verifier">
+                <VerifierJobsPage />
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/verify/claim"
+            element={
+              <ProtectedRoute role="verifier">
+                <Claimjob />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/verify/jobs"
+            element={
+              <ProtectedRoute role="verifier">
+                <MyJobsPage />
+              </ProtectedRoute>
+            }
+          />
 
           {/* ================= DEFAULT ================= */}
           <Route path="/" element={<Navigate to="/login" replace />} />
-
         </Routes>
       </Router>
     </AuthProvider>

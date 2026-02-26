@@ -76,9 +76,9 @@ export const submitJob = (jobId, technician_action) => {
 /* ===============================
    VERIFY JOB (VERIFIER)
 ================================= */
-export const verifyJob = (jobId, result, note = null) => {
+export const verifyJob = (jobId, status, note = null) => {
   return ApiJob.patch(`/jobs/${jobId}/verify`, {
-    result,   // "approved" / "rejected"
+    status,   // ✅ HARUS status
     note,
   });
 };
@@ -101,4 +101,11 @@ export const deleteJob = (jobId) => {
 ================================= */
 export const getMyJobs = () => {
   return ApiJob.get("/jobs/my-jobs");
+};
+
+/* ===============================
+   GET MY JOBS (VERIFIER)
+================================= */
+export const getPendingVerification = () => {
+  return ApiJob.get("/jobs/pending-verification");
 };
