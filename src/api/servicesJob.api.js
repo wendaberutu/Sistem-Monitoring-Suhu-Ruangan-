@@ -96,4 +96,9 @@ export const completeJob = (jobId) => {
 export const deleteJob = (jobId) => {
   return ApiJob.delete(`/jobs/${jobId}`);
 };
-
+/* ===============================
+   GET MY JOBS (TEKNISI)
+================================= */
+export const getMyJobs = () => {
+  return ApiJob.get("/jobs/my-jobs");
+};

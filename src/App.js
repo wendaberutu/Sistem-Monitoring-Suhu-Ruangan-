@@ -13,6 +13,7 @@ import InventoryPage from "./pages/admin/inventory.page";
 import PenerimaanSecurity from "./pages/security/penerimaanServisSecurity";
 import TechnicianPage from "./pages/technician/technician.page";
 import Claimjob from "./pages/technician/claimTask";
+import MyJobsPage from "./pages/technician/jobs.page";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
@@ -82,6 +83,15 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/technician/jobs"
+            element={
+              <ProtectedRoute role="technician">
+                <MyJobsPage />
+              </ProtectedRoute>
+            }
+          />
+
 
 
           {/* ================= DEFAULT ================= */}
