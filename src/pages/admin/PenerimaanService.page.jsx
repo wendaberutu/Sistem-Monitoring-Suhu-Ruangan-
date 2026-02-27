@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createJob, getAllJobs, getTechnicians, deleteJob} from "../../api/servicesJob.api";
+import { createJob, getAllJobs, getTechnicians, deleteJob } from "../../api/servicesJob.api";
 import Layout from "../../layout/servicesLayout";
 import { assignTechnician } from "../../api/servicesJob.api";
 
@@ -10,7 +10,7 @@ export default function ServicesPage() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [technicians, setTechnicians] = useState([]);
   const [enableAssign, setEnableAssign] = useState(false);
- 
+
 
   // ✅ Modal state
   const [showModal, setShowModal] = useState(false);
@@ -74,48 +74,48 @@ export default function ServicesPage() {
 
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    await createJob({
-      nama_penyetor: formData.customer_name,
-      item_name: formData.item_name,
-      item_description: formData.item_description,
-      reported_issue: formData.issue,
-      technician_id: enableAssign && formData.technician_id
-        ? Number(formData.technician_id)
-        : null
-    });
+    try {
+      await createJob({
+        nama_penyetor: formData.customer_name,
+        item_name: formData.item_name,
+        item_description: formData.item_description,
+        reported_issue: formData.issue,
+        technician_id: enableAssign && formData.technician_id
+          ? Number(formData.technician_id)
+          : null
+      });
 
-    alert("Service berhasil ditambahkan!");
+      alert("Service berhasil ditambahkan!");
 
-    setShowModal(false);
-    setFormData({
-      customer_name: "",
-      item_name: "",
-      item_description: "",
-      issue: "",
-      technician_id: ""
-    });
-    setEnableAssign(false);
+      setShowModal(false);
+      setFormData({
+        customer_name: "",
+        item_name: "",
+        item_description: "",
+        issue: "",
+        technician_id: ""
+      });
+      setEnableAssign(false);
 
-    fetchJobs();
-  } catch (err) {
-    alert("Gagal menambahkan service: " + (err.response?.data?.message || err.message));
-  }
-};
+      fetchJobs();
+    } catch (err) {
+      alert("Gagal menambahkan service: " + (err.response?.data?.message || err.message));
+    }
+  };
 
 
-const handleDelete = async (job) => {
-  if (!window.confirm("Hapus data service ini?")) return;
+  const handleDelete = async (job) => {
+    if (!window.confirm("Hapus data service ini?")) return;
 
-  try {
-    await deleteJob(job.id);
-    fetchJobs();
-  } catch (err) {
-    alert(err.response?.data?.message || "Gagal hapus data");
-  }
-};
+    try {
+      await deleteJob(job.id);
+      fetchJobs();
+    } catch (err) {
+      alert(err.response?.data?.message || "Gagal hapus data");
+    }
+  };
 
   const handlePrint = (job) => {
     const printWindow = window.open("", "_blank");
@@ -171,7 +171,7 @@ const handleDelete = async (job) => {
           <button
             onClick={() => setShowModal(true)}
             className="bg-gradient-to-r from-cyan-500/60 via-sky-500/15 to-blue-600/70 text-white px-4 py-2 rounded-md hover:opacity-90 transition">
-            ADD Service 
+            ADD Service
           </button>
 
           <div className="flex gap-4 items-center">
@@ -249,7 +249,7 @@ const handleDelete = async (job) => {
                       <td className="px-6 py-4">
                         {job.technician_name || (
                           <span className="text-slate-400 italic">
-                           Not Assigned
+                            Not Assigned
                           </span>
                         )}
                       </td>
@@ -257,13 +257,16 @@ const handleDelete = async (job) => {
                       <td className="px-6 py-4">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium capitalize
-                           ${job.status === "completed" && "bg-emerald-500/20 text-emerald-300"}
-                           ${job.status === "in_progress" && "bg-sky-500/20 text-sky-300"}
-                           ${job.status === "waiting" && "bg-amber-500/20 text-amber-300"}
-                           ${job.status === "assigned" && "bg-indigo-500/20 text-indigo-300"}
-                           ${job.status === "rejected" && "bg-rose-500/20 text-rose-300"}
-                           ${job.status === "pending_verification" && "bg-violet-500/20 text-violet-300"}
-                         `}
+  ${job.status === "waiting" && "bg-amber-500/20 text-amber-300 border border-amber-500/30"}
+  ${job.status === "assigned" && "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"}
+  ${job.status === "in_progress" && "bg-sky-500/20 text-sky-300 border border-sky-500/30"}
+  ${job.status === "pending_verification" && "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"}
+  ${job.status === "pending_verifikasi_qc" && "bg-blue-500/20 text-blue-300 border border-blue-500/30"}
+  ${job.status === "approved_maintenance" && "bg-purple-500/20 text-purple-300 border border-purple-500/30"}
+  ${job.status === "in_sanitation" && "bg-teal-500/20 text-teal-300 border border-teal-500/30"}
+  ${job.status === "rejected" && "bg-rose-500/20 text-rose-300 border border-rose-500/30"}
+  ${job.status === "completed" && "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"}
+`}
                         >
                           {job.status.replace("_", " ")}
                         </span>
