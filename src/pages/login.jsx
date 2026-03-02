@@ -13,53 +13,58 @@ export default function Login() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
- const handleLogin = async () => {
-  setError("");
+  const handleLogin = async () => {
+    setError("");
 
-  if (!username || !password) {
-    setError("Username dan password wajib diisi");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const res = await authApi.login({ username, password });
-
-    const { user } = res.data;
-
-    const userWithUsername = { ...user, username };
-    localStorage.setItem("user", JSON.stringify(userWithUsername));
-    setUser(userWithUsername);
-
-    const permissions = user.permissions;
-
-    if (permissions.admin) {
-      navigate("/admin");
-    } else if (permissions.verifier) {
-      navigate("/verify");
-    } else if (permissions.technician) {
-      navigate("/technician");
-    } else if (permissions.sanitasi) {
-      navigate("/sanitasi");
-    }else if (permissions.security) {
-      navigate("/security/penerimaan-service");
-    }else if (permissions.qc) {
-      navigate("/qc");
-    }else{
-      navigate("/");
+    if (!username || !password) {
+      setError("Username dan password wajib diisi");
+      return;
     }
 
-  } catch (err) {
-    if (!err.response) {
-      setError("Server tidak dapat dihubungi");
-    } else {
-      setError(err.response.data.message || "Login gagal");
+    setLoading(true);
+
+    try {
+      const res = await authApi.login({ username, password });
+
+      const { user, token } = res.data;
+
+      // 🔥 Simpan token
+      sessionStorage.setItem("token", token);
+
+      // Simpan user
+      const userWithUsername = { ...user, username };
+      sessionStorage.setItem("user", JSON.stringify(userWithUsername));
+
+      setUser(userWithUsername);
+
+      const permissions = user.permissions;
+
+      if (permissions.admin) {
+        navigate("/admin");
+      } else if (permissions.verifier) {
+        navigate("/verify");
+      } else if (permissions.technician) {
+        navigate("/technician");
+      } else if (permissions.sanitasi) {
+        navigate("/sanitasi");
+      } else if (permissions.security) {
+        navigate("/security/penerimaan-service");
+      } else if (permissions.qc) {
+        navigate("/qc");
+      } else {
+        navigate("/");
+      }
+
+    } catch (err) {
+      if (!err.response) {
+        setError("Server tidak dapat dihubungi");
+      } else {
+        setError(err.response.data.message || "Login gagal");
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950">
       <div className="w-[360px] rounded-2xl bg-slate-900/60 backdrop-blur-xl shadow-2xl px-7 py-8 text-slate-100">
@@ -68,7 +73,7 @@ export default function Login() {
         </div>
 
         <h2 className="text-center text-lg font-semibold">
-       waleta System Maintenance
+          waleta System Maintenance
         </h2>
         <p className="text-center text-xs text-slate-400 mt-1 mb-6">
           Silahkan login untuk melanjutkan

@@ -64,6 +64,9 @@ export const claimJob = (jobId) => {
   return ApiJob.patch(`/jobs/${jobId}/claim`);
 };
 
+export const claimJobByQR = (uid) => {
+  return ApiJob.patch(`/jobs/claim-qr/${uid}`);
+};
 /* ===============================
    SUBMIT JOB (TEKNISI)
 ================================= */
