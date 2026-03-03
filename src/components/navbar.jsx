@@ -26,7 +26,7 @@ export default function Navbar({ onToggleSidebar }) {
           </button>
 
           <h1 className="text-lg font-semibold">
-            WELCOME!!, {user?.username || user?.name || user?.email }
+           WELCOME!!, {user?.nama_pegawai || user?.username || user?.name}
           </h1>
         </div>
 

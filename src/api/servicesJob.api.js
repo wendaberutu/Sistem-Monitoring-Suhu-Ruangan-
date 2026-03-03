@@ -65,7 +65,9 @@ export const claimJob = (jobId) => {
 };
 
 export const claimJobByQR = (uid) => {
-  return ApiJob.patch(`/jobs/claim-qr/${uid}`);
+  return ApiJob.patch(`/jobs/claim-qr`, {
+    qr_code_uid: uid
+  });
 };
 /* ===============================
    SUBMIT JOB (TEKNISI)
@@ -111,4 +113,18 @@ export const getMyJobs = () => {
 ================================= */
 export const getPendingVerification = () => {
   return ApiJob.get("/jobs/pending-verification");
+};
+
+/* ===============================
+   START SANITATION (SANITASI)
+================================= */
+export const startSanitation = (uid) => {
+  return ApiJob.patch(`/jobs/uid/${uid}/start-sanitation`);
+};
+
+/* ===============================
+   FINISH SANITATION (SANITASI)
+================================= */
+export const finishSanitation = (uid) => {
+  return ApiJob.patch(`/jobs/uid/${uid}/finish-sanitation`);
 };

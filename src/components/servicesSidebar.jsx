@@ -17,10 +17,16 @@ const menuByRole = {
   verifier: [
     { label: "Dashboard", to: "/verify", icon: "📊" },
     { label: "klaim Tugas", to: "/verify/claim", icon: "📋" },
-     { label: "Tugas Saya", to: "/verify/jobs", icon: "🛠️" },
+    { label: "Tugas Saya", to: "/verify/jobs", icon: "🛠️" },
   ],
-  security : [
+  security: [
     { label: "Penerimaan Service", to: "/security/penerimaan-service", icon: "🛠️" },
+  ],
+  sanitasi: [
+    { label: "Dashboard", to: "/sanitasi", icon: "📊" },
+  ],
+  QC: [
+    { label: "Dashboard", to: "/qc", icon: "📊" },
   ]
 
 };
@@ -36,6 +42,8 @@ export default function AppSidebar({ isOpen }) {
     if (user?.permissions?.verifier) return "verifier";
     if (user?.permissions?.technician) return "technician";
     if (user?.permissions?.security) return "security";
+    if (user?.permissions?.sanitasi) return "sanitasi";
+    if (user?.permissions?.qc) return "qc";
     return null;
   };
 
@@ -77,20 +85,18 @@ export default function AppSidebar({ isOpen }) {
               className={`group w-full flex items-center gap-2
                 px-2 py-2 mx-2 rounded-lg text-sm
                 transition-all duration-200
-                ${
-                  active
-                    ? "bg-[#0f2a56] text-[#4da3ff]"
-                    : "text-slate-300 hover:bg-[#0f2a56]"
+                ${active
+                  ? "bg-[#0f2a56] text-[#4da3ff]"
+                  : "text-slate-300 hover:bg-[#0f2a56]"
                 }`}
             >
               {/* ICON */}
               <span
                 className={`w-8 h-8 flex items-center justify-center rounded-lg text-base shrink-0
                   transition-all duration-200
-                  ${
-                    active
-                      ? "bg-[#123d7a] text-[#4da3ff]"
-                      : "bg-[#0b1222] text-slate-400 group-hover:bg-[#123d7a] group-hover:text-[#4da3ff]"
+                  ${active
+                    ? "bg-[#123d7a] text-[#4da3ff]"
+                    : "bg-[#0b1222] text-slate-400 group-hover:bg-[#123d7a] group-hover:text-[#4da3ff]"
                   }`}
               >
                 {m.icon}

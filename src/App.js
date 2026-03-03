@@ -15,6 +15,7 @@ import TechnicianPage from "./pages/technician/technician.page";
 import Claimjob from "./pages/technician/claimTask";
 import MyJobsPage from "./pages/technician/jobs.page";
 import VerifierJobsPage from "./pages/verify/VerifierJobsPage";
+import Sanitasipage from "./pages/sanitasi/sanitasi.page";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
@@ -116,6 +117,16 @@ export default function App() {
             element={
               <ProtectedRoute role="verifier">
                 <MyJobsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ================= SANITASI ================= */}
+          <Route
+            path="/sanitasi"
+            element={
+              <ProtectedRoute role="sanitasi">
+                <Sanitasipage />
               </ProtectedRoute>
             }
           />
