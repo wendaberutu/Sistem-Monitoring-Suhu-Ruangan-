@@ -119,12 +119,20 @@ export const getPendingVerification = () => {
    START SANITATION (SANITASI)
 ================================= */
 export const startSanitation = (uid) => {
-  return ApiJob.patch(`/jobs/uid/${uid}/start-sanitation`);
+  return ApiJob.patch(`/jobs/start-sanitasi`, {
+    qr_code_uid: uid
+  });
 };
 
 /* ===============================
    FINISH SANITATION (SANITASI)
 ================================= */
 export const finishSanitation = (uid) => {
-  return ApiJob.patch(`/jobs/uid/${uid}/finish-sanitation`);
+  return ApiJob.patch(`/jobs/finish-sanitasi`, {
+    qr_code_uid: uid
+  });
 };
+
+export const getJobInSanitation = () => {
+  return ApiJob.get("/jobs/sanitation-in-progress");
+};  
