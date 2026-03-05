@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createJob, getAllJobs, getTechnicians, deleteJob } from "../../api/servicesJob.api";
 import Layout from "../../layout/servicesLayout";
 import { assignTechnician } from "../../api/servicesJob.api";
+import QRCode from "qrcode";
 
 export default function ServicesPage() {
   const [jobs, setJobs] = useState([]);
@@ -10,6 +11,8 @@ export default function ServicesPage() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [technicians, setTechnicians] = useState([]);
   const [enableAssign, setEnableAssign] = useState(false);
+  const [printData, setPrintData] = useState(null);
+
 
 
   // ✅ Modal state
@@ -75,9 +78,9 @@ export default function ServicesPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      await createJob({
+
+      const res = await createJob({
         nama_penyetor: formData.customer_name,
         item_name: formData.item_name,
         item_description: formData.item_description,
@@ -87,9 +90,30 @@ export default function ServicesPage() {
           : null
       });
 
-      alert("Service berhasil ditambahkan!");
+      const createdJob = res.data.data || res.data;
+
+      const qrDataUrl = await QRCode.toDataURL(createdJob.qr_code_uid);
+
+      const now = new Date().toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      setPrintData({
+        ...createdJob,
+        qr: qrDataUrl,
+        date: now
+      });
+
+      setTimeout(() => {
+        window.print();
+      }, 200);
 
       setShowModal(false);
+
       setFormData({
         customer_name: "",
         item_name: "",
@@ -97,9 +121,11 @@ export default function ServicesPage() {
         issue: "",
         technician_id: ""
       });
+
       setEnableAssign(false);
 
       fetchJobs();
+
     } catch (err) {
       alert("Gagal menambahkan service: " + (err.response?.data?.message || err.message));
     }
@@ -117,13 +143,28 @@ export default function ServicesPage() {
     }
   };
 
-  const handlePrint = (job) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(`<pre>${JSON.stringify(job, null, 2)}</pre>`);
-    printWindow.document.close();
-    printWindow.print();
-  };
+  const handlePrint = async (job) => {
+
+  const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid);
+
+  const now = new Date().toLocaleString("id-ID", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  setPrintData({
+    ...job,
+    qr: qrDataUrl,
+    date: now
+  });
+
+  setTimeout(() => {
+    window.print();
+  }, 200);
+};
 
   // Filter jobs by search term
   const filteredJobs = jobs.filter((job) =>
@@ -471,6 +512,107 @@ export default function ServicesPage() {
           </div>
         </div>
       )}
+
+      <div id="print-area">
+        {printData && (
+
+          <div className="print-container">
+
+            <div className="uid">{printData.qr_code_uid}</div>
+
+            <img className="qr" src={printData.qr}  alt="QR Code Service" />
+
+            <div className="service">ID: {printData.id}</div>
+
+            <div className="info">
+ 
+              <div className="line">Tanggal : {printData.date}</div>
+
+              <div className="line">
+                Nama Barang : {printData.item_name}
+              </div>
+
+              <div className="line">
+                Penyetor : {printData.nama_penyetor || "-"}
+              </div>
+
+              <div className="line">
+                Teknisi : {printData.technician_name || "Belum ditentukan"}
+              </div>
+
+              <div className="line">
+                Issue : {printData.reported_issue || "-"}
+              </div>
+
+            </div>
+
+          </div>
+
+        )}
+      </div>
+
+      <style>{`
+
+#print-area{
+  display:none;
+}
+
+.print-container{
+  width:240px;
+  text-align:center;
+  font-family:Arial;
+  color:#000;
+}
+
+.uid{
+  font-size:14px;
+  font-weight:bold;
+}
+
+.service{
+  font-size:13px;
+  font-weight:bold;
+  margin:4px 0;
+}
+
+.info{
+  width:180px;
+  margin:0 auto;
+}
+
+.line{
+  font-size:12px;
+  text-align:left;
+  margin:2px 0;
+}
+
+@media print{
+
+  body *{
+    visibility:hidden;
+  }
+
+  #print-area, #print-area *{
+    visibility:visible;
+  }
+
+  #print-area{
+    display:block;
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+  }
+
+}
+
+.qr{
+  width:140px;
+  margin:5px auto;
+  display:block;
+}
+
+`}</style>
     </Layout>
   );
 }

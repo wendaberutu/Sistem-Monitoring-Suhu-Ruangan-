@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createJob, getAllJobs } from "../../api/servicesJob.api";
+import { createJob, getAllJobs, updateJob } from "../../api/servicesJob.api";
 import Layout from "../../layout/servicesLayout";
 import QRCode from "qrcode";
 
@@ -8,6 +8,15 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [printData, setPrintData] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editData, setEditData] = useState({
+    id: "",
+    item_name: "",
+    item_description: "",
+    issue: "",
+    customer_name: ""
+  });
 
 
   // ✅ Modal state
@@ -24,7 +33,7 @@ export default function ServicesPage() {
 
   useEffect(() => {
     fetchJobs();
-    
+
   }, []);
 
 
@@ -47,77 +56,120 @@ export default function ServicesPage() {
       [e.target.name]: e.target.value
     });
   };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  // ✅ Submit create job
-const handleSubmit = async (e) => {
-  e.preventDefault();
+    try {
+      const res = await createJob({
+        item_name: formData.item_name,
+        item_description: formData.item_description,
+        reported_issue: formData.issue,
+        nama_penyetor: formData.customer_name,
+        technician_id: null
+      });
 
-  try {
-    const res = await createJob({
-      item_name: formData.item_name,
-      item_description: formData.item_description,
-      reported_issue: formData.issue,
-      nama_penyetor: formData.customer_name,
-      technician_id: null
+      const createdJob = res.data.data;
+
+      const qrDataUrl = await QRCode.toDataURL(createdJob.qr_code_uid);
+
+      const now = new Date().toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      setPrintData({
+        ...createdJob,
+        qr: qrDataUrl,
+        date: now
+      });
+
+      setTimeout(() => {
+        window.print();
+      }, 300);
+
+      setShowModal(false);
+      fetchJobs();
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+  const handleEdit = (job) => {
+
+    setEditData({
+      id: job.id,
+      item_name: job.item_name,
+      item_description: job.item_description || "",
+      issue: job.reported_issue || "",
+      customer_name: job.nama_penyetor || ""
     });
 
-    const createdJob = res.data.data;
+    setShowEditModal(true);
 
-    const qrDataUrl = await QRCode.toDataURL(createdJob.qr_code_uid);
-
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Print QR Service</title>
-          <style>
-            body { font-family: Arial; text-align: center; }
-            img { width: 200px; }
-          </style>
-        </head>
-        <body>
-          <h3>ID Service: ${createdJob.id}</h3>
-          <p>${createdJob.item_name}</p>
-          <p>Penyetor: ${createdJob.nama_penyetor}</p>
-          <img src="${qrDataUrl}" />
-          <p>${createdJob.qr_code_uid}</p>
-          <script>
-            window.onload = function() { window.print(); }
-          </script>
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-
-    setShowModal(false);
-    fetchJobs();
-
-  } catch (err) {
-    console.error(err);
-  }
-};
-  const handleEdit = (job) => {
-    // Navigate to edit page or open edit modal (adjust route as needed)
-    window.location.href = `/admin/penerimaan-service/edit/${job.id}`;
   };
 
-  const handleDelete = (job) => {
-    if (!window.confirm("Hapus data service ini?")) return;
-    // Optimistic UI update — remove from local state
-    setJobs((prev) => prev.filter((j) => j.id !== job.id));
-    console.log("Deleted job (optimistic):", job);
-    // TODO: call delete API to persist removal
+  const handleEditChange = (e) => {
+
+    setEditData({
+      ...editData,
+      [e.target.name]: e.target.value
+    });
+
   };
 
-  const handlePrint = (job) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(`<pre>${JSON.stringify(job, null, 2)}</pre>`);
-    printWindow.document.close();
-    printWindow.print();
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    try {
+
+      await updateJob(editData.id, {
+        item_name: editData.item_name,
+        item_description: editData.item_description,
+        reported_issue: editData.issue,
+        nama_penyetor: editData.customer_name
+      });
+
+      setShowEditModal(false);
+      fetchJobs();
+
+    } catch (err) {
+      console.error("Update error:", err);
+    }
+  };
+
+  const handlePrint = async (job) => {
+
+    try {
+
+      const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid);
+
+      const now = new Date().toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      setPrintData({
+        ...job,
+        qr: qrDataUrl,
+        date: now
+      });
+
+      setTimeout(() => {
+        window.print();
+      }, 200);
+
+    } catch (err) {
+      console.error("Print error:", err);
+    }
+
   };
 
   // Filter jobs by search term
@@ -255,12 +307,12 @@ const handleSubmit = async (e) => {
                             Edit
                           </button>
 
-                          <button
+                          {/* <button
                             onClick={() => handleDelete(job)}
                             className="text-sm bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700"
                           >
                             Hapus
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
@@ -350,6 +402,182 @@ const handleSubmit = async (e) => {
           </div>
         </div>
       )}
+
+      {/* Modal edit services */}
+
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+
+          <div className="bg-slate-900 w-full max-w-lg rounded-xl p-6 shadow-2xl border border-white/10">
+
+            <h2 className="text-xl font-bold mb-4 text-white">
+              Edit Service
+            </h2>
+
+            <form onSubmit={handleUpdate} className="space-y-4">
+
+              <div>
+                <label className="text-sm text-white">Nama Penyetor</label>
+                <input
+                  type="text"
+                  name="customer_name"
+                  value={editData.customer_name}
+                  onChange={handleEditChange}
+                  className="w-full mt-1 px-3 py-2 rounded bg-slate-800 text-white border border-slate-600"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white">Nama Barang</label>
+                <input
+                  type="text"
+                  name="item_name"
+                  value={editData.item_name}
+                  onChange={handleEditChange}
+                  className="w-full mt-1 px-3 py-2 rounded bg-slate-800 text-white border border-slate-600"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white">Deskripsi</label>
+                <textarea
+                  name="item_description"
+                  value={editData.item_description}
+                  onChange={handleEditChange}
+                  className="w-full mt-1 px-3 py-2 rounded bg-slate-800 text-white border border-slate-600"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white">Issue</label>
+                <textarea
+                  name="issue"
+                  value={editData.issue}
+                  onChange={handleEditChange}
+                  className="w-full mt-1 px-3 py-2 rounded bg-slate-800 text-white border border-slate-600"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 rounded bg-slate-600 text-white"
+                >
+                  Batal
+                </button>
+
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded bg-blue-600 text-white"
+                >
+                  Update
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+      )}
+
+      <div id="print-area">
+        {printData && (
+          <div className="print-container">
+
+            <div className="uid">{printData.qr_code_uid}</div>
+
+            <img className="qr" src={printData.qr} />
+
+            <div className="service">ID: {printData.id}</div>
+
+            <div className="info">
+              <div className="line">Tanggal {printData.date}</div>
+              <div className="line">Nama Barang : {printData.item_name}</div>
+              <div className="line">Penyetor : {printData.nama_penyetor || "-"}</div>
+              <div className="line">Issue : {printData.reported_issue}</div>
+            </div>
+
+          </div>
+        )}
+      </div>
+
+      <style>{`
+
+      #print-area{
+  display:none;
+}
+
+.print-container{
+  width:240px;
+  text-align:center;
+  font-family:Arial;
+  color:#000;
+}
+
+.uid{
+  font-size:14px;
+  font-weight:bold;
+  margin-bottom:5px;
+  color:#000;
+}
+
+.qr{
+  width:160px;
+  margin:4px auto;
+}
+
+.service{
+  font-size:13px;
+  font-weight:bold;
+  margin-top:6px;
+  color:#000;
+}
+
+.info{
+  width:180px;
+  margin:0 auto;
+}
+
+.line{
+  font-size:12px;
+  text-align:left;
+  margin:2px 0;
+  color:#000;
+}
+
+@media print {
+
+  body{
+    color:#000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body *{
+    visibility:hidden;
+  }
+
+  #print-area, #print-area *{
+    visibility:visible;
+    color:#000;
+  }
+
+  #print-area{
+    display:block;
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+  }
+
+}
+
+    `}</style>
+
     </Layout>
   );
 }

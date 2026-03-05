@@ -41,6 +41,10 @@ export const createJob = (payload) => {
   return ApiJob.post("/jobs", payload);
 };
 
+export const updateJob = (id, data) => {
+  return ApiJob.put(`/jobs/${id}`, data);
+};
+
 /* ===============================
    ASSIGN TECHNICIAN (ADMIN)
 ================================= */
