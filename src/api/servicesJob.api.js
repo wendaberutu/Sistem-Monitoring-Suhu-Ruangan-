@@ -136,3 +136,17 @@ export const finishSanitation = (uid) => {
 export const getJobInSanitation = () => {
   return ApiJob.get("/jobs/sanitation-in-progress");
 };  
+
+/* ===============================
+   SCAN QR QC
+================================= */
+export const scanQcJob = (qrUid) => {
+  return ApiJob.get(`/jobs/qr/${qrUid}`);
+};
+
+/* ===============================
+   VERIFY QC
+================================= */
+export const verifyQcJob = (data) => {
+  return ApiJob.patch("/jobs/qc-verify", data);
+};;

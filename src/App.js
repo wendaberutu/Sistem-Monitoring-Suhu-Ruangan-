@@ -16,6 +16,7 @@ import Claimjob from "./pages/technician/claimTask";
 import MyJobsPage from "./pages/technician/jobs.page";
 import VerifierJobsPage from "./pages/verify/VerifierJobsPage";
 import Sanitasipage from "./pages/sanitasi/sanitasi.page";
+import QCPage from "./pages/qc/qc.page";
 
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
@@ -130,6 +131,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* ================= QC ================= */}
+          <Route
+            path="/qc"
+            element={
+              <ProtectedRoute role="qc">
+                <QCPage />
+              </ProtectedRoute>
+            }
+          />  
 
           {/* ================= DEFAULT ================= */}
           <Route path="/" element={<Navigate to="/login" replace />} />

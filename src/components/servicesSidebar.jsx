@@ -25,7 +25,7 @@ const menuByRole = {
   sanitasi: [
     { label: "Dashboard", to: "/sanitasi", icon: "📊" },
   ],
-  QC: [
+  qc: [
     { label: "Dashboard", to: "/qc", icon: "📊" },
   ]
 
