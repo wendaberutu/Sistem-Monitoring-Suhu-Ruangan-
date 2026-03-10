@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Layout from "../../layout/servicesLayout";
 import { getAdminDashboard } from "../../api/dashboard.api";
+import { Link } from "react-router-dom";
 
 export default function AdminDashboard() {
 
@@ -14,6 +15,7 @@ export default function AdminDashboard() {
   const [recent, setRecent] = useState([]);
   const [topTech, setTopTech] = useState([]);
   const [overdueJobs, setOverdueJobs] = useState([]);
+  const [limit, setLimit] = useState(15);
 
   useEffect(() => {
     fetchDashboard();
@@ -65,6 +67,15 @@ export default function AdminDashboard() {
       ]
     }
   ];
+
+  const filteredRecent = useMemo(() => {
+    return recent
+      .filter((job) =>
+        ["waiting", "in_progress", "pending_verification"].includes(job.status)
+      )
+      .sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
+      .slice(0, limit);
+  }, [recent, limit]);
 
   return (
     <Layout>
@@ -141,9 +152,26 @@ export default function AdminDashboard() {
               Aktivitas Servis Terbaru
             </h3>
 
-            <span className="text-cyan-400 text-sm cursor-pointer hover:underline">
-              Lihat Semua
-            </span>
+            <div className="flex items-center gap-3">
+
+              <select
+                value={limit}
+                onChange={(e) => setLimit(Number(e.target.value))}
+                className="bg-slate-800 text-white text-sm px-3 py-1 rounded border border-slate-600"
+              >
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+
+              <Link
+                to="/admin/penerimaan-service"
+                className="text-cyan-400 text-sm hover:underline"
+              >
+                Lihat Semua
+              </Link>
+
+            </div>
 
           </div>
 
@@ -164,7 +192,7 @@ export default function AdminDashboard() {
 
               <tbody className="divide-y divide-slate-800">
 
-                {recent.map((job, i) => (
+                {filteredRecent.map((job, i) => (
 
                   <tr key={i} className="hover:bg-slate-800/60 transition">
 
@@ -179,17 +207,17 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4">
 
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          job.status === "completed"
-                            ? "bg-emerald-500/20 text-emerald-300"
-                            : job.status === "in_progress"
-                            ? "bg-amber-500/20 text-amber-300"
-                            : job.status === "pending_verification"
-                            ? "bg-indigo-500/20 text-indigo-300"
-                            : job.status === "assigned"
-                            ? "bg-cyan-500/20 text-cyan-300"
-                            : "bg-slate-500/20 text-slate-300"
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium capitalize
+  ${job.status === "waiting" && "bg-amber-500/20 text-amber-300 border border-amber-500/30"}
+  ${job.status === "assigned" && "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"}
+  ${job.status === "in_progress" && "bg-sky-500/20 text-sky-300 border border-sky-500/30"}
+  ${job.status === "pending_verification" && "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"}
+  ${job.status === "pending_verifikasi_qc" && "bg-blue-500/20 text-blue-300 border border-blue-500/30"}
+  ${job.status === "approved_maintenance" && "bg-purple-500/20 text-purple-300 border border-purple-500/30"}
+  ${job.status === "in_sanitation" && "bg-teal-500/20 text-teal-300 border border-teal-500/30"}
+  ${job.status === "rejected" && "bg-rose-500/20 text-rose-300 border border-rose-500/30"}
+  ${job.status === "completed" && "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"}
+`}
                       >
 
                         {job.status.replaceAll("_", " ")}
@@ -232,8 +260,8 @@ export default function AdminDashboard() {
 
                 const medal =
                   i === 0 ? "🥇" :
-                  i === 1 ? "🥈" :
-                  i === 2 ? "🥉" : "";
+                    i === 1 ? "🥈" :
+                      i === 2 ? "🥉" : "";
 
                 const max = topTech[0]?.total_completed || 1;
 

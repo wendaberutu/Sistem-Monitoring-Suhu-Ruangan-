@@ -86,7 +86,7 @@ export default function MyJobsPage() {
                           ? "bg-blue-600/30 text-blue-300"
                           : "bg-yellow-500/20 text-yellow-300"
                       }`}>
-                        {job.status.toUpperCase()}
+                        {job.status.replaceAll("_", " ").toUpperCase()}
                       </span>
 
                       <h2 className="text-xl font-semibold mt-4">
