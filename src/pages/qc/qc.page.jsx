@@ -9,6 +9,7 @@ export default function QCScanPage() {
   const [job, setJob] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [rejectNote, setRejectNote] = useState("");
+  const [rejectType, setRejectType] = useState("");
 
   const html5QrCodeRef = useRef(null);
 
@@ -56,6 +57,7 @@ export default function QCScanPage() {
       setSuccessMessage("QC disetujui");
       setJob(null);
       setRejectNote("");
+      setRejectType("");
     } catch (err) {
       alert(err.response?.data?.message);
     }
@@ -65,18 +67,23 @@ export default function QCScanPage() {
     if (!rejectNote) {
       alert("Catatan wajib diisi");
       return;
+    } else if (!rejectType) {
+      alert("Pilih jenis penolakan");
+      return;
     }
 
     try {
       await verifyQcJob({
         qr_code_uid: job.qr_code_uid,
         status: "rejected",
+        reject_type: rejectType,
         note: rejectNote
       });
 
       setSuccessMessage("QC ditolak");
       setJob(null);
       setRejectNote("");
+      setRejectType("");
     } catch (err) {
       alert(err.response?.data?.message);
     }
@@ -165,6 +172,20 @@ export default function QCScanPage() {
               <div>
                 <div className="text-sm text-gray-500">Status</div>
                 <div className="text-lg">{job.status}</div>
+              </div>
+
+              <div>
+                <div className="text-sm text-gray-500">Jenis Penolakan</div>
+
+                <select
+                  value={rejectType}
+                  onChange={(e) => setRejectType(e.target.value)}
+                  className="w-full mt-2 p-3 border border-gray-300 rounded-lg text-gray-800"
+                >
+                  <option value="">Pilih alasan penolakan</option>
+                  <option value="technician">Masalah Teknisi</option>
+                  <option value="sanitation">Masalah Kebersihan / Sanitasi</option>
+                </select>
               </div>
 
               <div>

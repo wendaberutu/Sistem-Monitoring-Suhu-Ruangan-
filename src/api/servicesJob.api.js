@@ -154,3 +154,7 @@ export const scanQcJob = (qrUid) => {
 export const verifyQcJob = (data) => {
   return ApiJob.patch("/jobs/qc-verify", data);
 };;
+
+export const getPenyetor = () => {
+  return ApiJob.get("/jobs/penyetor");
+};

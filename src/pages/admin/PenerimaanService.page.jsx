@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createJob, getAllJobs, getTechnicians, deleteJob } from "../../api/servicesJob.api";
+import { createJob, getAllJobs, getTechnicians, getPenyetor, deleteJob } from "../../api/servicesJob.api";
 import Layout from "../../layout/servicesLayout";
 import { assignTechnician } from "../../api/servicesJob.api";
 import QRCode from "qrcode";
@@ -12,6 +12,9 @@ export default function ServicesPage() {
   const [technicians, setTechnicians] = useState([]);
   const [enableAssign, setEnableAssign] = useState(false);
   const [printData, setPrintData] = useState(null);
+  const [penyetors, setPenyetors] = useState([]);
+  const [penyetorSearch, setPenyetorSearch] = useState("");
+  const [showPenyetorDropdown, setShowPenyetorDropdown] = useState(false);
 
 
 
@@ -36,7 +39,18 @@ export default function ServicesPage() {
   useEffect(() => {
     fetchJobs();
     fetchTechnicians();
+    fetchPenyetor();
   }, []);
+
+  const fetchPenyetor = async () => {
+    try {
+      const res = await getPenyetor();
+      const data = res.data.data || res.data || [];
+      setPenyetors(data);
+    } catch (err) {
+      console.error("Failed to fetch penyetor:", err);
+    }
+  };
 
   const fetchTechnicians = async () => {
     try {
@@ -145,26 +159,26 @@ export default function ServicesPage() {
 
   const handlePrint = async (job) => {
 
-  const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid);
+    const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid);
 
-  const now = new Date().toLocaleString("id-ID", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+    const now = new Date().toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
 
-  setPrintData({
-    ...job,
-    qr: qrDataUrl,
-    date: now
-  });
+    setPrintData({
+      ...job,
+      qr: qrDataUrl,
+      date: now
+    });
 
-  setTimeout(() => {
-    window.print();
-  }, 200);
-};
+    setTimeout(() => {
+      window.print();
+    }, 200);
+  };
 
   // Filter jobs by search term
   const filteredJobs = jobs.filter((job) =>
@@ -173,6 +187,10 @@ export default function ServicesPage() {
     job.qr_code_uid?.toLowerCase().includes(search.toLowerCase()) ||
     job.technician_name?.toLowerCase().includes(search.toLowerCase()) ||
     job.status?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const filteredPenyetors = penyetors.filter((p) =>
+    p.nama_pegawai.toLowerCase().includes(penyetorSearch.toLowerCase())
   );
 
   // Slice to show only requested entries per page
@@ -359,16 +377,50 @@ export default function ServicesPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
 
 
-              <div>
-                <label className="text-sm text-white">Nama Penyetor </label>
+              <div className="relative">
+                <label className="text-sm text-white">Nama Penyetor</label>
+
                 <input
                   type="text"
-                  name="customer_name"
-                  value={formData.customer_name}
-                  onChange={handleChange}
-                  required
-                  className="w-full mt-1 px-3 py-2 rounded bg-slate-800 text-white border border-slate-600 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Cari penyetor..."
+                  value={penyetorSearch}
+                  onChange={(e) => {
+                    setPenyetorSearch(e.target.value);
+                    setShowPenyetorDropdown(true);
+                  }}
+                  onFocus={() => setShowPenyetorDropdown(true)}
+                  className="w-full mt-1 px-3 py-2 rounded bg-slate-800 text-white border border-slate-600"
                 />
+
+                {showPenyetorDropdown && (
+                  <div className="absolute z-50 w-full bg-slate-800 border border-slate-600 rounded mt-1 max-h-48 overflow-y-auto">
+
+                    {filteredPenyetors.length === 0 && (
+                      <div className="px-3 py-2 text-slate-400 text-sm">
+                        Tidak ada data
+                      </div>
+                    )}
+
+                    {filteredPenyetors.map((p) => (
+                      <div
+                        key={p.id_pegawai}
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            customer_name: p.nama_pegawai
+                          });
+
+                          setPenyetorSearch(p.nama_pegawai);
+                          setShowPenyetorDropdown(false);
+                        }}
+                        className="px-3 py-2 hover:bg-slate-700 cursor-pointer text-white"
+                      >
+                        {p.nama_pegawai}
+                      </div>
+                    ))}
+
+                  </div>
+                )}
               </div>
 
               <div>
@@ -520,12 +572,12 @@ export default function ServicesPage() {
 
             <div className="uid">{printData.qr_code_uid}</div>
 
-            <img className="qr" src={printData.qr}  alt="QR Code Service" />
+            <img className="qr" src={printData.qr} alt="QR Code Service" />
 
             <div className="service">ID: {printData.id}</div>
 
             <div className="info">
- 
+
               <div className="line">Tanggal : {printData.date}</div>
 
               <div className="line">

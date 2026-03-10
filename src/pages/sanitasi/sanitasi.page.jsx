@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import Layout from "../../layout/servicesLayout";
-import { startSanitation, finishSanitation, getJobInSanitation } from "../../api/servicesJob.api";  // Pastikan API client diimpor
-
+import { finishSanitation, getJobInSanitation } from "../../api/servicesJob.api";  // Pastikan API client diimpor
 
 export default function SanitasiPage() {
   const [items, setItems] = useState([]);
@@ -25,17 +24,8 @@ export default function SanitasiPage() {
     try {
       const existing = items.find((i) => i.qr_code_uid === uid);
 
-      if (!existing) {
-        // Mulai sanitasi untuk pemindaian pertama
-        await startSanitation(uid);
-        setSuccessMessage("Sanitasi dimulai");
-
-        // Memperbarui data setelah status berhasil diubah
-        const res = await getJobInSanitation();  // Panggil API lagi untuk mendapatkan data terbaru
-        setItems(res.data.data);  // Perbarui state dengan data terbaru
-
-      } else {
-        // Selesaikan sanitasi untuk pemindaian kedua
+      if (existing) {
+        // Selesaikan sanitasi untuk pemindaian QR
         await finishSanitation(uid);
 
         // Memperbarui data setelah status berhasil diubah
@@ -43,6 +33,8 @@ export default function SanitasiPage() {
         setItems(res.data.data);  // Perbarui state dengan data terbaru
 
         setSuccessMessage("Sanitasi selesai & dikirim ke QC");
+      } else {
+        setSuccessMessage("QR tidak ditemukan dalam daftar sanitasi.");
       }
 
       // Hapus pesan sukses dan hentikan scanner setelah sedikit waktu
@@ -111,7 +103,7 @@ export default function SanitasiPage() {
             <div>
               <h1 className="text-5xl font-bold leading-tight">Mode Auto Sanitasi</h1>
               <p className="mt-6 text-blue-100 text-lg">
-                Scan pertama memulai sanitasi. <br /> Scan kedua menyelesaikan dan kirim ke QC.
+                Scan untuk menyelesaikan sanitasi dan kirim ke QC.
               </p>
             </div>
 
