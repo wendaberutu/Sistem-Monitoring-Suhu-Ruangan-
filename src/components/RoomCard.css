@@ -104,7 +104,20 @@
 .temp-icon {
   font-size: 3.4em;
   line-height: 1;
+  color: #6EA8FF;
+  display: flex;
+  align-items: center;
+  filter: drop-shadow(0 0 5px rgba(110, 168, 255, 0.65));
+}
+
+.card.room-card.temp-warning .temp-icon {
+  color: #1a1a1a;
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.4));
+}
+
+.card.room-card.temp-danger .temp-icon {
   color: #ffffff;
+  filter: drop-shadow(0 0 6px rgba(255, 100, 100, 0.8));
 }
 
 .temp-value {

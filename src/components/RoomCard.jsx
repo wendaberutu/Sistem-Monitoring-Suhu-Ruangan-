@@ -71,7 +71,26 @@ if (deviceMode === "empty") {
           <div className="room-name">{room}</div>
         </div>
         <div className="room-temp">
-          <span className="temp-icon">🌡</span>
+          <span className="temp-icon">
+            <svg viewBox="0 0 24 24" width="1em" height="1em" xmlns="http://www.w3.org/2000/svg">
+              {/* body transparan */}
+              <path d="M14 13.5V5a2 2 0 0 0-4 0v8.5A4 4 0 1 0 14 13.5z"
+                fill="currentColor" opacity="0.2"/>
+              {/* outline */}
+              <path d="M14 13.5V5a2 2 0 0 0-4 0v8.5A4 4 0 1 0 14 13.5z"
+                fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+              {/* tick marks */}
+              <line x1="14" y1="7"   x2="15.5" y2="7"   stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="14" y1="9.5" x2="15.5" y2="9.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="14" y1="12"  x2="15.5" y2="12"  stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              {/* mercury tube */}
+              <rect x="11" y="10" width="2" height="4" rx="1" fill="currentColor"/>
+              {/* bulb fill */}
+              <circle cx="12" cy="17" r="2.2" fill="currentColor"/>
+              {/* highlight bulb */}
+              <circle cx="11.2" cy="16.2" r="0.55" fill="white" opacity="0.45"/>
+            </svg>
+          </span>
 
           <span className="temp-value">
             <AnimatedNumber value={temp} />
