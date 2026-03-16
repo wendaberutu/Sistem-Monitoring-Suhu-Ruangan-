@@ -10,6 +10,11 @@ import Login from "./pages/login";
 import AdminPage from "./pages/admin/admin.page";
 import Penerimaan from "./pages/admin/PenerimaanService.page";
 import InventoryPage from "./pages/admin/inventory.page";
+import AdminRoomMonitoring from "./pages/admin/AdminRoomMonitoring";
+import AppLayout from "./layout/AppLayout";
+import RoomMonitoring from "./pages/RoomMonitoring";
+import WaterMonitoring from "./pages/WaterMonitoring";
+import EnergyMonitoring from "./pages/EnergyMonitoring";
 import PenerimaanSecurity from "./pages/security/penerimaanServisSecurity";
 import TechnicianPage from "./pages/technician/technician.page";
 import Claimjob from "./pages/technician/claimTask";
@@ -53,6 +58,15 @@ export default function App() {
             element={
               <ProtectedRoute role="admin">
                 <InventoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/room-monitoring"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminRoomMonitoring />
               </ProtectedRoute>
             }
           />
@@ -141,6 +155,11 @@ export default function App() {
               </ProtectedRoute>
             }
           />  
+
+          {/* ================= MONITORING ================= */}
+          <Route path="/rooms" element={<AppLayout><RoomMonitoring /></AppLayout>} />
+          <Route path="/water" element={<AppLayout><WaterMonitoring /></AppLayout>} />
+          <Route path="/energy" element={<AppLayout><EnergyMonitoring /></AppLayout>} />
 
           {/* ================= DEFAULT ================= */}
           <Route path="/" element={<Navigate to="/login" replace />} />

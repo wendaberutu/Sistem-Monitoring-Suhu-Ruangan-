@@ -7,6 +7,7 @@ const menuByRole = {
     { label: "Dashboard", to: "/admin", icon: "📊" },
     { label: "Inventori", to: "/admin/inventory", icon: "📦" },
     { label: "Penerimaan Servis", to: "/admin/penerimaan-service", icon: "🛠️" },
+    { label: "Sistem Monitoring", to: "/admin/room-monitoring", icon: "🖥️" },
   ],
   technician: [
     { label: "Dashboard", to: "/technician", icon: "📊" },

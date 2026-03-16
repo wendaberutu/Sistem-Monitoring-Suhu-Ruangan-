@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 const TITLE_BY_PATH = {
-  "/rooms": "Monitoring Suhu & Kelembapan",
   "/water": "Monitoring Water Treatment",
   "/energy": "Monitoring Konsumsi Energi",
+  "/admin/room-monitoring": "Monitoring Suhu & Kelembapan",
 };
 
 export default function AppNavbar() {

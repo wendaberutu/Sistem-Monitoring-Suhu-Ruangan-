@@ -12,7 +12,7 @@ export default function AppLayout({ children }) {
         onToggle={() => setCollapsed(p => !p)}
       />
 
-      <div style={{ flex: 1, overflow: "hidden" }}>
+      <div style={{ flex: 1, overflow: "hidden", background: "#000" }}>
         <AppNavbar />
         {children}
       </div>

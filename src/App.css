@@ -1,6 +1,10 @@
 /* =====================================================
-   GLOBAL RESET 
+   GLOBAL RESET
 ===================================================== */
+
+:root {
+  --navbar-height: 50px;
+}
 
 html,
 body,
@@ -20,6 +24,7 @@ body,
   width: 100%;
   height: calc(100vh - var(--navbar-height));
   overflow: hidden;
+  background: #000;
 }
 
 /* =====================================================
