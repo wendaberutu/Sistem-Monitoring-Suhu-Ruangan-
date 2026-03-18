@@ -563,49 +563,46 @@ export default function ServicesPage() {
 }
 
 .print-container{
-  width:240px;
+  width:80mm;
+  padding:4mm;
   text-align:center;
   font-family:Arial;
   color:#000;
+  box-sizing:border-box;
 }
 
 .uid{
-  font-size:14px;
+  font-size:12px;
   font-weight:bold;
-  margin-bottom:5px;
-  color:#000;
+  margin-bottom:4px;
 }
 
 .qr{
-  width:160px;
+  width:140px;
   margin:4px auto;
 }
 
 .service{
-  font-size:13px;
+  font-size:12px;
   font-weight:bold;
-  margin-top:6px;
-  color:#000;
+  margin-top:4px;
 }
 
 .info{
-  width:180px;
-  margin:0 auto;
+  width:100%;
 }
 
 .line{
-  font-size:12px;
+  font-size:11px;
   text-align:left;
   margin:2px 0;
-  color:#000;
 }
 
 @media print {
 
-  body{
-    color:#000;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  @page {
+    size: 80mm auto;
+    margin: 0;
   }
 
   body *{
@@ -614,15 +611,14 @@ export default function ServicesPage() {
 
   #print-area, #print-area *{
     visibility:visible;
-    color:#000;
   }
 
   #print-area{
     display:block;
-    position:absolute;
+    position:fixed;
     left:0;
     top:0;
-    width:100%;
+    width:80mm;
   }
 
 }
