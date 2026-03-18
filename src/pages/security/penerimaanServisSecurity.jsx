@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createJob, getAllJobs, updateJob, getPenyetor } from "../../api/servicesJob.api";
+import { createJob, getAllJobs, updateJob, getPenyetor, getAssetByKodeUnit } from "../../api/servicesJob.api";
 import Layout from "../../layout/servicesLayout";
 import QRCode from "qrcode";
 
@@ -27,11 +27,13 @@ export default function ServicesPage() {
 
   // ✅ Form state
   const [formData, setFormData] = useState({
+    kode_unit: "",
     item_name: "",
     item_description: "",
     issue: "",
     technician_id: ""
   });
+  const [assetStatus, setAssetStatus] = useState(null); // null | 'loading' | 'found' | 'not_found'
 
 
   useEffect(() => {
@@ -70,11 +72,29 @@ export default function ServicesPage() {
       [e.target.name]: e.target.value
     });
   };
+
+  const handleKodeUnitBlur = async (e) => {
+    const kode = e.target.value.trim();
+    if (!kode) {
+      setAssetStatus(null);
+      return;
+    }
+    setAssetStatus("loading");
+    try {
+      const res = await getAssetByKodeUnit(kode);
+      setFormData(prev => ({ ...prev, item_name: res.data.data.item_name }));
+      setAssetStatus("found");
+    } catch {
+      setAssetStatus("not_found");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const res = await createJob({
+        kode_unit: formData.kode_unit || undefined,
         item_name: formData.item_name,
         item_description: formData.item_description,
         reported_issue: formData.issue,
@@ -96,6 +116,7 @@ export default function ServicesPage() {
 
       setPrintData({
         ...createdJob,
+        nama_penyetor: createdJob.nama_penyetor || formData.customer_name,
         qr: qrDataUrl,
         date: now
       });
@@ -105,6 +126,8 @@ export default function ServicesPage() {
       }, 300);
 
       setShowModal(false);
+      setFormData({ kode_unit: "", item_name: "", item_description: "", issue: "", technician_id: "" });
+      setAssetStatus(null);
       fetchJobs();
 
     } catch (err) {
@@ -398,6 +421,22 @@ export default function ServicesPage() {
 
                   </div>
                 )}
+              </div>
+
+              <div>
+                <label className="text-sm text-white">Kode Unit Aset <span className="text-slate-400">(opsional)</span></label>
+                <input
+                  type="text"
+                  name="kode_unit"
+                  value={formData.kode_unit}
+                  onChange={handleChange}
+                  onBlur={handleKodeUnitBlur}
+                  placeholder="Kosongkan jika bukan dari aset"
+                  className="w-full mt-1 px-3 py-2 rounded bg-slate-800 text-white border border-slate-600 focus:ring-2 focus:ring-blue-500"
+                />
+                {assetStatus === "loading" && <p className="text-xs text-slate-400 mt-1">Mencari aset...</p>}
+                {assetStatus === "found" && <p className="text-xs text-emerald-400 mt-1">Aset ditemukan — nama barang terisi otomatis</p>}
+                {assetStatus === "not_found" && <p className="text-xs text-rose-400 mt-1">Kode unit tidak ditemukan — isi nama barang manual</p>}
               </div>
 
               <div>

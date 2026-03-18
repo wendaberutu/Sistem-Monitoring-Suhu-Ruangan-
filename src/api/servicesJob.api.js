@@ -153,3 +153,10 @@ export const verifyQcJob = (data) => {
 export const getPenyetor = () => {
   return ApiJob.get("/jobs/penyetor");
 };
+
+/* ===============================
+   LOOKUP ASET BY KODE UNIT
+================================= */
+export const getAssetByKodeUnit = (kodeUnit) => {
+  return ApiJob.get(`/jobs/assets/lookup/${kodeUnit}`);
+};
