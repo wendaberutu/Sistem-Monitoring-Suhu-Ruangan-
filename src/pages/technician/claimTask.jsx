@@ -214,7 +214,7 @@ export default function ClaimTaskPage() {
               ))}
 
             </div>
-          </div>                                                                                                                                  b
+          </div>                                                                                                                                  
         </div>
       </div>
     </Layout>
