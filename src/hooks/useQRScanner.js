@@ -1,13 +1,15 @@
 import { useRef, useCallback } from "react";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
+
+// Daftarkan custom ZXing plugin
+const ZxingScanner = registerPlugin("ZxingScanner");
 
 /**
  * Hook universal scanner QR.
- * - Di Android (Capacitor native): menggunakan MLKit barcode scanner bawaan.
+ * - Di Android (Capacitor native): menggunakan ZXing via native plugin (tidak butuh Google).
  * - Di browser (web): menggunakan html5-qrcode dengan kamera WebRTC.
  *
  * @param {(uid: string) => Promise<void>} onScan - callback dipanggil saat QR berhasil dibaca
- * @returns {{ isNative, scanning, startScan, stopScan }}
  */
 export function useQRScanner(onScan) {
   const html5QrRef = useRef(null);
@@ -15,32 +17,17 @@ export function useQRScanner(onScan) {
   const isNative = Capacitor.isNativePlatform();
 
   // ────────────────────────────────────────────────
-  // NATIVE (Android) – pakai MLKit via plugin
+  // NATIVE (Android) – pakai ZXing via custom plugin
   // ────────────────────────────────────────────────
   const startNativeScan = useCallback(async () => {
     try {
-      const { BarcodeScanner, BarcodeFormat } = await import(
-        "@capacitor-mlkit/barcode-scanning"
-      );
-
-      // Minta izin kamera
-      const { camera } = await BarcodeScanner.requestPermissions();
-      if (camera !== "granted") {
-        alert("Izin kamera ditolak. Aktifkan di pengaturan aplikasi.");
-        return;
-      }
-
-      // Buka native scanner (full-screen overlay)
-      const { barcodes } = await BarcodeScanner.scan({
-        formats: [BarcodeFormat.QrCode],
-      });
-
-      if (barcodes && barcodes.length > 0) {
-        await onScan(barcodes[0].rawValue.trim());
+      const result = await ZxingScanner.scan();
+      if (result?.text) {
+        await onScan(result.text.trim());
       }
     } catch (err) {
-      if (err?.message?.includes("cancel")) return; // user cancel = ok
-      console.error("Native scan error:", err);
+      if (err?.message?.includes("dibatalkan") || err?.message?.includes("cancel")) return;
+      console.error("ZXing scan error:", err);
       alert("Gagal membuka scanner: " + (err?.message || "error tidak diketahui"));
     }
   }, [onScan]);
@@ -101,7 +88,6 @@ export function useQRScanner(onScan) {
   // ────────────────────────────────────────────────
   return {
     isNative,
-    /** Mulai scan (native: buka overlay, web: perlu element DOM) */
     startNativeScan,
     startWebScan,
     stopWebScan,
