@@ -1,24 +1,12 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { useState, useEffect, useCallback } from "react";
 import Layout from "../../layout/servicesLayout";
 import { finishSanitation, getJobInSanitation } from "../../api/servicesJob.api";
+import { useQRScanner } from "../../hooks/useQRScanner";
 
 export default function SanitasiPage() {
   const [items, setItems] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const html5QrCodeRef = useRef(null);
-
-  const stopScanner = useCallback(async () => {
-    if (html5QrCodeRef.current) {
-      try {
-        await html5QrCodeRef.current.stop();
-        await html5QrCodeRef.current.clear();
-      } catch {}
-      html5QrCodeRef.current = null;
-    }
-    setScanning(false);
-  }, []);
 
   const handleSanitasiQR = useCallback(
     async (uid) => {
@@ -36,20 +24,41 @@ export default function SanitasiPage() {
           setSuccessMessage("QR tidak ditemukan dalam daftar sanitasi.");
         }
 
-        setTimeout(() => {
-          setSuccessMessage("");
-          stopScanner();
-        }, 1500);
+        setTimeout(() => setSuccessMessage(""), 2000);
       } catch (err) {
         alert(err.response?.data?.message || "Proses gagal");
-        await stopScanner();
+      } finally {
+        setScanning(false);
       }
     },
-    [items, stopScanner]
+    [items]
   );
 
-  const startScanner = () => {
-    setScanning(true);
+  const { isNative, startNativeScan, startWebScan, stopWebScan } =
+    useQRScanner(handleSanitasiQR);
+
+  // ── Web: mulai html5-qrcode setelah elemen DOM siap ──────────────────────
+  useEffect(() => {
+    if (!scanning || isNative) return;
+
+    const timeout = setTimeout(() => {
+      startWebScan("reader-sanitasi").catch(() => setScanning(false));
+    }, 200);
+
+    return () => clearTimeout(timeout);
+  }, [scanning, isNative, startWebScan]);
+
+  const handleStart = async () => {
+    if (isNative) {
+      await startNativeScan();
+    } else {
+      setScanning(true);
+    }
+  };
+
+  const handleStop = async () => {
+    await stopWebScan();
+    setScanning(false);
   };
 
   useEffect(() => {
@@ -64,37 +73,6 @@ export default function SanitasiPage() {
 
     fetchSanitasiInProgress();
   }, []);
-
-  useEffect(() => {
-    if (!scanning) return;
-
-    const startCamera = async () => {
-      const element = document.getElementById("reader");
-      if (!element) return;
-
-      const html5QrCode = new Html5Qrcode("reader");
-      html5QrCodeRef.current = html5QrCode;
-
-      try {
-        await html5QrCode.start(
-          { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: { width: 220, height: 220 },
-            aspectRatio: 1,
-          },
-          async (decodedText) => {
-            await handleSanitasiQR(decodedText.trim());
-          }
-        );
-      } catch {
-        setScanning(false);
-      }
-    };
-
-    const timeout = setTimeout(startCamera, 200);
-    return () => clearTimeout(timeout);
-  }, [scanning, handleSanitasiQR]);
 
   return (
     <Layout variant="technician">
@@ -115,15 +93,16 @@ export default function SanitasiPage() {
 
             {!scanning ? (
               <button
-                onClick={startScanner}
+                onClick={handleStart}
                 className="w-full sm:w-auto mt-2 sm:mt-6 px-6 sm:px-10 py-3 sm:py-5 rounded-2xl font-semibold text-sm sm:text-base lg:text-lg bg-white/15 backdrop-blur-md border border-white/30 hover:bg-white/25 transition shadow-xl"
               >
                 ⬜ Aktifkan Scanner
               </button>
             ) : (
+              /* Hanya tampil di web (isNative=false) */
               <div className="space-y-4 sm:space-y-6">
                 <div className="bg-white rounded-2xl p-3 sm:p-4 w-full max-w-[320px] shadow-2xl">
-                  <div id="reader" className="w-full overflow-hidden rounded-xl" />
+                  <div id="reader-sanitasi" className="w-full overflow-hidden rounded-xl" />
                 </div>
 
                 {successMessage && (
@@ -133,11 +112,18 @@ export default function SanitasiPage() {
                 )}
 
                 <button
-                  onClick={stopScanner}
+                  onClick={handleStop}
                   className="w-full sm:w-auto px-6 py-3 rounded-xl bg-red-500 hover:bg-red-600 transition font-medium"
                 >
                   Stop Scanner
                 </button>
+              </div>
+            )}
+
+            {/* Pesan hasil scan (native) */}
+            {isNative && successMessage && (
+              <div className="px-4 py-3 bg-green-500/20 border border-green-400 text-white rounded-lg text-sm sm:text-base">
+                {successMessage}
               </div>
             )}
           </div>

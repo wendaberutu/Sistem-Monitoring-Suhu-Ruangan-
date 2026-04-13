@@ -1,14 +1,13 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Layout from "../../layout/servicesLayout";
 import { getAvailableJobs, claimJob, claimJobByQR } from "../../api/servicesJob.api";
-import { Html5Qrcode } from "html5-qrcode";
+import { useQRScanner } from "../../hooks/useQRScanner";
 
 export default function ClaimTaskPage() {
   const [availableTasks, setAvailableTasks] = useState([]);
   const [loadingId, setLoadingId] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [scanning, setScanning] = useState(false);
-  const html5QrCodeRef = useRef(null);
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -35,17 +34,6 @@ export default function ClaimTaskPage() {
     }
   };
 
-  const stopScanner = useCallback(async () => {
-    if (html5QrCodeRef.current) {
-      try {
-        await html5QrCodeRef.current.stop();
-        await html5QrCodeRef.current.clear();
-      } catch { }
-      html5QrCodeRef.current = null;
-    }
-    setScanning(false);
-  }, []);
-
   const handleClaimQR = useCallback(
     async (uid) => {
       try {
@@ -54,64 +42,43 @@ export default function ClaimTaskPage() {
         setSuccessMessage("Job berhasil di-claim ✅");
         await fetchJobs();
 
-        setTimeout(async () => {
-          setSuccessMessage("");
-          await stopScanner();
-        }, 1500);
+        setTimeout(() => setSuccessMessage(""), 2000);
       } catch (err) {
         alert(err.response?.data?.message || "QR tidak valid");
-        await stopScanner();
       } finally {
         setLoadingId(null);
-      }
-    },
-    [fetchJobs, stopScanner]
-  );
-
-  const startScanner = () => {
-    setScanning(true);
-  };
-
-  useEffect(() => {
-    if (!scanning) return;
-
-    const startCamera = async () => {
-      const element = document.getElementById("reader");
-      if (!element) return;
-
-      const html5QrCode = new Html5Qrcode("reader");
-      html5QrCodeRef.current = html5QrCode;
-
-      let scanned = false;
-
-      try {
-        await html5QrCode.start(
-          { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: { width: 220, height: 220 },
-            aspectRatio: 1,
-          },
-          async (decodedText) => {
-            if (scanned) return;
-            scanned = true;
-
-            const uid = decodedText.trim();
-            await handleClaimQR(uid);
-          }
-        );
-      } catch (err) {
-        console.error("Camera error:", err);
         setScanning(false);
       }
-    };
+    },
+    [fetchJobs]
+  );
 
-    const timeout = setTimeout(startCamera, 200);
+  const { isNative, startNativeScan, startWebScan, stopWebScan } =
+    useQRScanner(handleClaimQR);
 
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [scanning, handleClaimQR]);
+  // ── Web: mulai html5-qrcode setelah elemen DOM siap ──────────────────────
+  useEffect(() => {
+    if (!scanning || isNative) return;
+
+    const timeout = setTimeout(() => {
+      startWebScan("reader-claim").catch(() => setScanning(false));
+    }, 200);
+
+    return () => clearTimeout(timeout);
+  }, [scanning, isNative, startWebScan]);
+
+  const handleStart = async () => {
+    if (isNative) {
+      await startNativeScan();
+    } else {
+      setScanning(true);
+    }
+  };
+
+  const handleStop = async () => {
+    await stopWebScan();
+    setScanning(false);
+  };
 
   return (
     <Layout variant="technician">
@@ -127,7 +94,7 @@ export default function ClaimTaskPage() {
               {!scanning ? (
                 <>
                   <div
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full 
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full
                     bg-blue-500/20 border border-blue-500/30
                     flex items-center justify-center text-2xl sm:text-3xl"
                   >
@@ -143,20 +110,28 @@ export default function ClaimTaskPage() {
                   </p>
 
                   <button
-                    onClick={startScanner}
-                    className="w-full sm:w-auto px-6 sm:px-8 md:px-10 py-3 md:py-4 rounded-xl font-semibold 
-                    bg-gradient-to-r from-blue-600 to-blue-700 
+                    onClick={handleStart}
+                    className="w-full sm:w-auto px-6 sm:px-8 md:px-10 py-3 md:py-4 rounded-xl font-semibold
+                    bg-gradient-to-r from-blue-600 to-blue-700
                     hover:from-blue-700 hover:to-blue-800
                     shadow-lg shadow-blue-500/20 transition"
                   >
                     Mulai Scan QR
                   </button>
+
+                  {/* Pesan sukses setelah native scan */}
+                  {successMessage && (
+                    <div className="w-full max-w-md px-4 py-3 bg-green-600/20 border border-green-500/40 text-green-400 rounded-lg text-sm sm:text-base">
+                      {successMessage}
+                    </div>
+                  )}
                 </>
               ) : (
+                /* Hanya tampil di web (isNative=false) */
                 <>
                   <div className="w-full flex justify-center">
                     <div
-                      id="reader"
+                      id="reader-claim"
                       className="w-full max-w-[320px] min-h-[250px] overflow-hidden rounded-2xl border border-blue-500/20 bg-black p-2"
                     />
                   </div>
@@ -168,7 +143,7 @@ export default function ClaimTaskPage() {
                   )}
 
                   <button
-                    onClick={stopScanner}
+                    onClick={handleStop}
                     className="w-full sm:w-auto px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 font-semibold transition"
                   >
                     Stop Scan
@@ -189,7 +164,7 @@ export default function ClaimTaskPage() {
               </span>
             </div>
 
-           <div className="max-h-[60vh] overflow-y-auto space-y-3 sm:space-y-4">
+            <div className="max-h-[60vh] overflow-y-auto space-y-3 sm:space-y-4">
               {availableTasks.length > 0 ? (
                 availableTasks.map((task) => (
                   <div

@@ -1,7 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Layout from "../../layout/servicesLayout";
-import { Html5Qrcode } from "html5-qrcode";
 import { scanQcJob, verifyQcJob } from "../../api/servicesJob.api";
+import { useQRScanner } from "../../hooks/useQRScanner";
 
 export default function QCScanPage() {
   const [scanning, setScanning] = useState(false);
@@ -10,48 +10,43 @@ export default function QCScanPage() {
   const [rejectNote, setRejectNote] = useState("");
   const [rejectType, setRejectType] = useState("");
 
-  const html5QrCodeRef = useRef(null);
+  const handleScan = useCallback(async (uid) => {
+    try {
+      const res = await scanQcJob(uid);
+      setJob(res.data.data);
+      setSuccessMessage("QR berhasil dibaca");
+    } catch {
+      setSuccessMessage("QR tidak valid");
+    }
+    // Setelah native scan selesai, kembalikan state
+    setScanning(false);
+  }, []);
 
-  const startScanner = async () => {
-    setScanning(true);
+  const { isNative, startNativeScan, startWebScan, stopWebScan } =
+    useQRScanner(handleScan);
 
-    setTimeout(async () => {
-      try {
-        const qr = new Html5Qrcode("reader");
-        html5QrCodeRef.current = qr;
+  // ── Web: mulai html5-qrcode setelah elemen DOM siap ──────────────────────
+  useEffect(() => {
+    if (!scanning || isNative) return;
 
-        await qr.start(
-          { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: { width: 220, height: 220 },
-            aspectRatio: 1,
-          },
-          async (decodedText) => {
-            try {
-              const res = await scanQcJob(decodedText.trim());
-              setJob(res.data.data);
-              setSuccessMessage("QR berhasil dibaca");
-            } catch {
-              setSuccessMessage("QR tidak valid");
-            }
-          }
-        );
-      } catch (err) {
-        console.error(err);
-        setScanning(false);
-      }
-    }, 300);
+    const timeout = setTimeout(() => {
+      startWebScan("reader-qc").catch(() => setScanning(false));
+    }, 200);
+
+    return () => clearTimeout(timeout);
+  }, [scanning, isNative, startWebScan]);
+
+  const handleStart = async () => {
+    if (isNative) {
+      // Langsung buka native scanner, tidak perlu set scanning=true
+      await startNativeScan();
+    } else {
+      setScanning(true);
+    }
   };
 
-  const stopScanner = async () => {
-    if (html5QrCodeRef.current) {
-      try {
-        await html5QrCodeRef.current.stop();
-        await html5QrCodeRef.current.clear();
-      } catch {}
-      html5QrCodeRef.current = null;
-    }
+  const handleStop = async () => {
+    await stopWebScan();
     setScanning(false);
   };
 
@@ -115,17 +110,19 @@ export default function QCScanPage() {
               </p>
             </div>
 
+            {/* Tombol scan (native: langsung buka kamera, web: tampilkan preview) */}
             {!scanning ? (
               <button
-                onClick={startScanner}
+                onClick={handleStart}
                 className="w-full sm:w-auto mt-2 sm:mt-6 px-6 sm:px-10 py-3 sm:py-5 rounded-2xl font-semibold text-sm sm:text-base lg:text-lg bg-white/15 backdrop-blur-md border border-white/30 hover:bg-white/25 transition shadow-xl"
               >
                 Aktifkan Scanner
               </button>
             ) : (
+              /* Hanya tampil di web (isNative=false) */
               <div className="space-y-4 sm:space-y-6">
                 <div className="bg-white rounded-2xl p-3 sm:p-4 w-full max-w-[320px] shadow-2xl">
-                  <div id="reader" className="w-full overflow-hidden rounded-xl" />
+                  <div id="reader-qc" className="w-full overflow-hidden rounded-xl" />
                 </div>
 
                 {successMessage && (
@@ -135,11 +132,18 @@ export default function QCScanPage() {
                 )}
 
                 <button
-                  onClick={stopScanner}
+                  onClick={handleStop}
                   className="w-full sm:w-auto px-6 py-3 rounded-xl bg-red-500 hover:bg-red-600 transition font-medium"
                 >
                   Stop Scanner
                 </button>
+              </div>
+            )}
+
+            {/* Pesan hasil scan (native: ditampilkan di sini) */}
+            {isNative && successMessage && (
+              <div className="px-4 py-3 bg-green-500/20 border border-green-400 text-white rounded-lg text-sm sm:text-base">
+                {successMessage}
               </div>
             )}
           </div>
