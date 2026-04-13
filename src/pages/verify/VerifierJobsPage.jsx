@@ -49,41 +49,41 @@ export default function VerifierJobsPage() {
     <Layout variant="verifier">
       <div >
 
-        <h1 className="text-3xl font-semibold mb-8">Verifikasi Pekerjaan</h1>
+        <h1 className="text-xl md:text-3xl font-semibold mb-4 md:mb-8">Verifikasi Pekerjaan</h1>
 
         {/* ================= SUMMARY ================= */}
-        <div className="grid grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-10">
 
           {/* MENUNGGU */}
-          <div className="rounded-2xl p-6 bg-gradient-to-br from-[#0b1325] to-[#020617]
+          <div className="rounded-2xl p-3 md:p-6 bg-gradient-to-br from-[#0b1325] to-[#020617]
             border border-blue-500/30 shadow-lg shadow-blue-500/10">
-            <p className="text-blue-300 text-sm">MENUNGGU</p>
-            <h2 className="text-3xl font-bold mt-2">{summary.pending}</h2>
-            <p className="text-xs text-yellow-400 mt-2">
+            <p className="text-blue-300 text-xs md:text-sm">MENUNGGU</p>
+            <h2 className="text-2xl md:text-3xl font-bold mt-2">{summary.pending}</h2>
+            <p className="text-xs text-yellow-400 mt-2 hidden sm:block">
               ● Perlu tindakan segera
             </p>
           </div>
 
           {/* DISETUJUI */}
-          <div className="rounded-2xl p-6 bg-gradient-to-br from-[#0b1325] to-[#020617]
+          <div className="rounded-2xl p-3 md:p-6 bg-gradient-to-br from-[#0b1325] to-[#020617]
             border border-blue-500/30 shadow-lg shadow-blue-500/10">
-            <p className="text-blue-300 text-sm">DISETUJUI</p>
-            <h2 className="text-3xl font-bold mt-2 text-green-400">
+            <p className="text-blue-300 text-xs md:text-sm">DISETUJUI</p>
+            <h2 className="text-2xl md:text-3xl font-bold mt-2 text-green-400">
               {summary.approved}
             </h2>
-            <p className="text-xs text-green-400 mt-2">
+            <p className="text-xs text-green-400 mt-2 hidden sm:block">
               ✓ Sudah ke sanitasi
             </p>
           </div>
 
           {/* DITOLAK */}
-          <div className="rounded-2xl p-6 bg-gradient-to-br from-[#0b1325] to-[#020617]
+          <div className="rounded-2xl p-3 md:p-6 bg-gradient-to-br from-[#0b1325] to-[#020617]
             border border-blue-500/30 shadow-lg shadow-blue-500/10">
-            <p className="text-blue-300 text-sm">DITOLAK</p>
-            <h2 className="text-3xl font-bold mt-2 text-red-400">
+            <p className="text-blue-300 text-xs md:text-sm">DITOLAK</p>
+            <h2 className="text-2xl md:text-3xl font-bold mt-2 text-red-400">
               {summary.rejected}
             </h2>
-            <p className="text-xs text-red-400 mt-2">
+            <p className="text-xs text-red-400 mt-2 hidden sm:block">
               ✕ Kembali ke teknisi
             </p>
           </div>
@@ -91,10 +91,10 @@ export default function VerifierJobsPage() {
         </div>
 
         {/* ================= MAIN GRID ================= */}
-        <div className="grid grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8">
 
           {/* ===== ANTRIAN (KIRI) ===== */}
-          <div className="col-span-4 space-y-4">
+          <div className="md:col-span-4 space-y-4">
             <h2 className="text-sm text-blue-300 tracking-widest mb-2">
               ANTRIAN VERIFIKASI
             </h2>
@@ -119,7 +119,7 @@ export default function VerifierJobsPage() {
           </div>
 
           {/* ===== DETAIL (KANAN) ===== */}
-          <div className="col-span-8">
+          <div className="md:col-span-8">
             {!selectedJob ? (
               <div className="h-full flex items-center justify-center
                 border border-blue-500/20 rounded-2xl text-blue-300/60">

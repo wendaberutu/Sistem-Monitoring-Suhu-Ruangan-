@@ -9,22 +9,30 @@ export default function Layout({ children, variant }) {
 
   return (
     <div
-      className={`flex min-h-screen text-white relative ${
+      className={`flex h-dvh md:min-h-screen text-white relative overflow-hidden ${
         isTechnician ? "bg-[#0b1120]" : "bg-slate-800"
       }`}
     >
-
-      {/* Glow background (tidak ganggu klik) */}
       {isTechnician && (
-        <div className="absolute inset-0 pointer-events-none
-          bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.15),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(37,99,235,0.12),transparent_40%)]" />
+        <div
+          className="absolute inset-0 pointer-events-none
+          bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.15),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(37,99,235,0.12),transparent_40%)]"
+        />
+      )}
+
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
 
       <Sidebar isOpen={sidebarOpen} />
 
-      <div className="flex-1 flex flex-col relative z-10">
-        <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
-        <main className="flex-1 p-6">
+      <div className="flex-1 flex flex-col relative z-10 min-w-0 min-h-0">
+        <Navbar onToggleSidebar={() => setSidebarOpen((v) => !v)} />
+
+        <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain p-3 md:p-6 pb-24 md:pb-6">
           {children}
         </main>
       </div>

@@ -242,8 +242,8 @@ export default function ServicesPage() {
 
   return (
     <Layout>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Penerimaan Barang Servis</h1>
+      <div>
+        <h1 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Penerimaan Barang Servis</h1>
 
         {/* Printer status bar */}
         <div className="mb-3 flex items-center gap-3 text-sm">
@@ -266,21 +266,21 @@ export default function ServicesPage() {
           {printError && <span className="text-rose-400 text-xs">{printError}</span>}
         </div>
 
-        <div className="mb-4 flex justify-between items-center gap-4">
+        <div className="mb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <button
             onClick={() => setShowModal(true)}
-            className="bg-gradient-to-r from-cyan-500/60 via-sky-500/15 to-blue-600/70 text-white px-4 py-2 rounded-md hover:opacity-90 transition">
+            className="bg-gradient-to-r from-cyan-500/60 via-sky-500/15 to-blue-600/70 text-white px-4 py-2 rounded-md hover:opacity-90 transition w-full sm:w-auto">
             ADD Service
           </button>
 
-          <div className="flex gap-4 items-center">
+          <div className="flex flex-wrap gap-3 items-center">
             {/* Show entries dropdown */}
             <div className="flex items-center gap-2">
-              <label className="text-sm text-white font-medium">Show entries:</label>
+              <label className="text-sm text-white font-medium whitespace-nowrap">Show:</label>
               <select
                 value={entriesPerPage}
                 onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                className="border border-gray-300 rounded px-3 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-gray-300 rounded px-2 py-1.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -291,15 +291,13 @@ export default function ServicesPage() {
             </div>
 
             {/* Search input */}
-            <div>
-              <input
-                type="text"
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="border border-gray-300 rounded px-4 py-2 text-sm text-black w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1.5 text-sm text-black flex-1 min-w-[140px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </div>
 
@@ -414,8 +412,8 @@ export default function ServicesPage() {
       {/* Modal tambah services */}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-slate-900 w-full max-w-lg rounded-xl p-6 shadow-2xl border border-white/10" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-slate-900 w-full max-w-lg rounded-t-2xl sm:rounded-xl p-4 md:p-6 shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
 
             <h2 className="text-xl font-bold mb-4 text-white">
               Tambah Service Baru
@@ -579,8 +577,8 @@ export default function ServicesPage() {
 
       {/* Modal Assign Teknisi */}
       {showAssignModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-slate-900 w-full max-w-md rounded-xl p-6 shadow-2xl border border-white/10">
+        <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-slate-900 w-full max-w-md rounded-t-2xl sm:rounded-xl p-4 md:p-6 shadow-2xl border border-white/10 max-h-[85vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4 text-white">
               Assign Teknisi - Service ID {selectedJob?.id}
             </h2>

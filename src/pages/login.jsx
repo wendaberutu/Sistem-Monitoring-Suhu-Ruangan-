@@ -66,8 +66,8 @@ export default function Login() {
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950">
-      <div className="w-[360px] rounded-2xl bg-slate-900/60 backdrop-blur-xl shadow-2xl px-7 py-8 text-slate-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950 px-4">
+      <div className="w-full max-w-[360px] rounded-2xl bg-slate-900/60 backdrop-blur-xl shadow-2xl px-6 py-8 text-slate-100">
         <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br from-blue-500 to-blue-400 flex items-center justify-center text-lg">
           ⚙️
         </div>

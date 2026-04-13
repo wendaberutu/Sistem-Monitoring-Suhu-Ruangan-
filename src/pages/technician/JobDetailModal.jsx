@@ -24,10 +24,10 @@ export default function JobDetailModal({ job, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center">
 
-      <div className="bg-[#0f172a] w-full max-w-3xl rounded-2xl p-8
-        border border-blue-500/30 shadow-2xl">
+      <div className="bg-[#0f172a] w-full max-w-3xl rounded-t-2xl sm:rounded-2xl p-4 md:p-8
+        border border-blue-500/30 shadow-2xl max-h-[90vh] overflow-y-auto">
 
         <div className="flex justify-between mb-6">
           <h2 className="text-2xl font-semibold">Detail Tugas</h2>

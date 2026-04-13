@@ -56,7 +56,10 @@ export default function AppSidebar({ isOpen }) {
       className={`min-h-screen bg-gradient-to-b from-[#0b1020] to-[#020617]
       border-r border-slate-800
       transition-all duration-300 flex flex-col shrink-0
-      ${isOpen ? "w-64" : "w-16"}`}
+      ${isOpen
+        ? "fixed inset-y-0 left-0 z-50 w-64 md:relative md:z-auto md:inset-y-auto md:left-auto"
+        : "w-0 overflow-hidden md:w-16"
+      }`}
     >
       {/* HEADER */}
       <div className="h-16 px-4 flex items-center gap-3 border-b border-slate-800 shrink-0">

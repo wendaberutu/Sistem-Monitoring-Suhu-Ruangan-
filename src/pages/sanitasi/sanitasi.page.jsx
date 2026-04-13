@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import Layout from "../../layout/servicesLayout";
-import { finishSanitation, getJobInSanitation } from "../../api/servicesJob.api";  // Pastikan API client diimpor
+import { finishSanitation, getJobInSanitation } from "../../api/servicesJob.api";
 
 export default function SanitasiPage() {
   const [items, setItems] = useState([]);
@@ -14,40 +14,39 @@ export default function SanitasiPage() {
       try {
         await html5QrCodeRef.current.stop();
         await html5QrCodeRef.current.clear();
-      } catch { }
+      } catch {}
       html5QrCodeRef.current = null;
     }
     setScanning(false);
   }, []);
 
-  const handleSanitasiQR = useCallback(async (uid) => {
-    try {
-      const existing = items.find((i) => i.qr_code_uid === uid);
+  const handleSanitasiQR = useCallback(
+    async (uid) => {
+      try {
+        const existing = items.find((i) => i.qr_code_uid === uid);
 
-      if (existing) {
-        // Selesaikan sanitasi untuk pemindaian QR
-        await finishSanitation(uid);
+        if (existing) {
+          await finishSanitation(uid);
 
-        // Memperbarui data setelah status berhasil diubah
-        const res = await getJobInSanitation();  // Panggil API lagi untuk mendapatkan data terbaru
-        setItems(res.data.data);  // Perbarui state dengan data terbaru
+          const res = await getJobInSanitation();
+          setItems(res.data.data || []);
 
-        setSuccessMessage("Sanitasi selesai & dikirim ke QC");
-      } else {
-        setSuccessMessage("QR tidak ditemukan dalam daftar sanitasi.");
+          setSuccessMessage("Sanitasi selesai & dikirim ke QC");
+        } else {
+          setSuccessMessage("QR tidak ditemukan dalam daftar sanitasi.");
+        }
+
+        setTimeout(() => {
+          setSuccessMessage("");
+          stopScanner();
+        }, 1500);
+      } catch (err) {
+        alert(err.response?.data?.message || "Proses gagal");
+        await stopScanner();
       }
-
-      // Hapus pesan sukses dan hentikan scanner setelah sedikit waktu
-      setTimeout(() => {
-        setSuccessMessage("");
-        stopScanner();
-      }, 1500);
-
-    } catch (err) {
-      alert(err.response?.data?.message || "Proses gagal");
-      await stopScanner();
-    }
-  }, [items, stopScanner]);
+    },
+    [items, stopScanner]
+  );
 
   const startScanner = () => {
     setScanning(true);
@@ -57,7 +56,7 @@ export default function SanitasiPage() {
     const fetchSanitasiInProgress = async () => {
       try {
         const res = await getJobInSanitation();
-        setItems(res.data.data);
+        setItems(res.data.data || []);
       } catch (err) {
         console.error("Gagal mengambil data sanitasi: ", err);
       }
@@ -79,7 +78,11 @@ export default function SanitasiPage() {
       try {
         await html5QrCode.start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: 250 },
+          {
+            fps: 10,
+            qrbox: { width: 220, height: 220 },
+            aspectRatio: 1,
+          },
           async (decodedText) => {
             await handleSanitasiQR(decodedText.trim());
           }
@@ -95,14 +98,17 @@ export default function SanitasiPage() {
 
   return (
     <Layout variant="technician">
-      <div className="h-screen w-full flex overflow-hidden">
-        {/* Left Panel */}
-        <div className="w-1/2 relative flex flex-col justify-center px-20 bg-gradient-to-br from-[#1e3a8a] via-[#2563eb] to-[#1e40af] text-white overflow-hidden">
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400/30 blur-3xl rounded-full pointer-events-none" />
-          <div className="relative z-10 max-w-xl space-y-8">
+      <div className="w-full flex flex-col lg:flex-row min-h-full">
+        <div className="w-full lg:w-1/2 relative flex flex-col justify-center px-4 sm:px-6 md:px-10 lg:px-20 py-8 sm:py-10 bg-gradient-to-br from-[#1e3a8a] via-[#2563eb] to-[#1e40af] text-white overflow-hidden rounded-2xl lg:rounded-none">
+          <div className="absolute bottom-0 left-0 w-72 h-72 sm:w-96 sm:h-96 bg-blue-400/30 blur-3xl rounded-full pointer-events-none" />
+
+          <div className="relative z-10 max-w-xl space-y-6 sm:space-y-8">
             <div>
-              <h1 className="text-5xl font-bold leading-tight">Mode Auto Sanitasi</h1>
-              <p className="mt-6 text-blue-100 text-lg">
+              <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold leading-tight">
+                Mode Auto Sanitasi
+              </h1>
+
+              <p className="mt-3 sm:mt-6 text-blue-100 text-sm sm:text-base lg:text-lg">
                 Scan untuk menyelesaikan sanitasi dan kirim ke QC.
               </p>
             </div>
@@ -110,23 +116,26 @@ export default function SanitasiPage() {
             {!scanning ? (
               <button
                 onClick={startScanner}
-                className="mt-6 px-10 py-5 rounded-2xl font-semibold text-lg bg-white/15 backdrop-blur-md border border-white/30 hover:bg-white/25 transition shadow-xl"
+                className="w-full sm:w-auto mt-2 sm:mt-6 px-6 sm:px-10 py-3 sm:py-5 rounded-2xl font-semibold text-sm sm:text-base lg:text-lg bg-white/15 backdrop-blur-md border border-white/30 hover:bg-white/25 transition shadow-xl"
               >
                 ⬜ Aktifkan Scanner
               </button>
             ) : (
-              <div className="space-y-6">
-                <div className="bg-white rounded-2xl p-4 w-[300px] shadow-2xl">
-                  <div id="reader" />
+              <div className="space-y-4 sm:space-y-6">
+                <div className="bg-white rounded-2xl p-3 sm:p-4 w-full max-w-[320px] shadow-2xl">
+                  <div id="reader" className="w-full overflow-hidden rounded-xl" />
                 </div>
 
                 {successMessage && (
-                  <div className="px-4 py-3 bg-green-500/20 border border-green-400 text-white rounded-lg">
+                  <div className="px-4 py-3 bg-green-500/20 border border-green-400 text-white rounded-lg text-sm sm:text-base">
                     {successMessage}
                   </div>
                 )}
 
-                <button onClick={stopScanner} className="px-6 py-2 rounded-lg bg-red-500 hover:bg-red-600 transition">
+                <button
+                  onClick={stopScanner}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-red-500 hover:bg-red-600 transition font-medium"
+                >
                   Stop Scanner
                 </button>
               </div>
@@ -134,38 +143,51 @@ export default function SanitasiPage() {
           </div>
         </div>
 
-        {/* Right Panel */}
-        <div className="w-1/2 bg-gradient-to-br from-[#f8fafc] to-[#e2e8f0] text-gray-800 px-16 py-14 flex flex-col h-full">
-          <div className="flex justify-between items-center mb-10">
-            <h2 className="text-3xl font-semibold">Dalam Proses Sanitasi</h2>
-            <div className="text-sm text-gray-500">{items.length} Aktif</div>
+        <div className="w-full lg:w-1/2 bg-gradient-to-br from-[#f8fafc] to-[#e2e8f0] text-gray-800 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8 lg:py-14 flex flex-col min-h-[45vh] lg:min-h-0 rounded-2xl lg:rounded-none mt-4 lg:mt-0">
+          <div className="flex items-center justify-between gap-3 mb-5 sm:mb-6 lg:mb-10">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-semibold leading-tight">
+              Dalam Proses Sanitasi
+            </h2>
+            <div className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
+              {items.length} Aktif
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+          <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 lg:space-y-6 pr-1 sm:pr-2 pb-4">
             {items.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                <div className="text-6xl mb-6 opacity-40">📦</div>
-                <div className="text-lg">Belum ada barang aktif</div>
+              <div className="flex flex-col items-center justify-center h-full text-gray-400 py-10">
+                <div className="text-5xl sm:text-6xl mb-4 sm:mb-6 opacity-40">
+                  📦
+                </div>
+                <div className="text-sm sm:text-lg text-center">
+                  Belum ada barang aktif
+                </div>
               </div>
             )}
 
             {items.map((item) => (
-              <div key={item.qr_code_uid} className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-                <div className="flex justify-between items-center space-x-6">
-                  {/* Icon Section */}
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-2xl shadow-md">
+              <div
+                key={item.qr_code_uid}
+                className="bg-white p-4 sm:p-5 lg:p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
+              >
+                <div className="flex items-center gap-3 sm:gap-4 lg:gap-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl shadow-md shrink-0">
                     🧴
                   </div>
 
-                  {/* Item Info */}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-gray-800">{item.item_name}</h3>
-                    <p className="text-gray-500 text-sm">{item.qr_code_uid}</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 break-words leading-snug">
+                      {item.item_name}
+                    </h3>
+                    <p className="text-gray-500 text-xs sm:text-sm break-all mt-1">
+                      {item.qr_code_uid}
+                    </p>
                   </div>
 
-                  {/* Status Text Section (on the right side) */}
-                  <div className="text-right">
-                    <p className="text-blue-600 text-sm font-medium">Dalam Proses</p>
+                  <div className="text-right shrink-0">
+                    <p className="text-blue-600 text-xs sm:text-sm font-medium whitespace-nowrap">
+                      Dalam Proses
+                    </p>
                   </div>
                 </div>
               </div>
