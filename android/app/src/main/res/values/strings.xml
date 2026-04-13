@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Waleta System Maintenance</string>
+    <string name="title_activity_main">Waleta System Maintenance</string>
+    <string name="package_name">com.waleta.systemmaintenance</string>
+    <string name="custom_url_scheme">com.waleta.systemmaintenance</string>
+</resources>

@@ -3,6 +3,8 @@ import { createJob, getAllJobs, getTechnicians, getPenyetor, deleteJob, getAsset
 import Layout from "../../layout/servicesLayout";
 import { assignTechnician } from "../../api/servicesJob.api";
 import QRCode from "qrcode";
+import { usePrinter } from "../../hooks/usePrinter";
+import PrinterSelectModal from "../../components/PrinterSelectModal";
 
 export default function ServicesPage() {
   const [jobs, setJobs] = useState([]);
@@ -16,7 +18,11 @@ export default function ServicesPage() {
   const [penyetorSearch, setPenyetorSearch] = useState("");
   const [showPenyetorDropdown, setShowPenyetorDropdown] = useState(false);
 
-
+  const {
+    printer, printing, printError,
+    showModal: showPrinterModal, setShowModal: setShowPrinterModal,
+    selectPrinter, forgetPrinter, printJob,
+  } = usePrinter();
 
   // ✅ Modal state
   const [showModal, setShowModal] = useState(false);
@@ -136,16 +142,15 @@ export default function ServicesPage() {
         minute: "2-digit"
       });
 
-      setPrintData({
+      const jobForPrint = {
         ...createdJob,
         nama_penyetor: createdJob.nama_penyetor || formData.customer_name,
         qr: qrDataUrl,
-        date: now
-      });
+        date: now,
+      };
 
-      setTimeout(() => {
-        window.print();
-      }, 200);
+      setPrintData(jobForPrint);
+      await printJob(jobForPrint);
 
       setShowModal(false);
 
@@ -180,26 +185,18 @@ export default function ServicesPage() {
   };
 
   const handlePrint = async (job) => {
-
-    const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid);
-
-    const now = new Date().toLocaleString("id-ID", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-
-    setPrintData({
-      ...job,
-      qr: qrDataUrl,
-      date: now
-    });
-
-    setTimeout(() => {
-      window.print();
-    }, 200);
+    try {
+      const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid);
+      const now = new Date().toLocaleString("id-ID", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      });
+      const jobForPrint = { ...job, qr: qrDataUrl, date: now };
+      setPrintData(jobForPrint);
+      await printJob(jobForPrint);
+    } catch (err) {
+      console.error("Print error:", err);
+    }
   };
 
   // Filter jobs by search term
@@ -247,6 +244,27 @@ export default function ServicesPage() {
     <Layout>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Penerimaan Barang Servis</h1>
+
+        {/* Printer status bar */}
+        <div className="mb-3 flex items-center gap-3 text-sm">
+          {printer ? (
+            <>
+              <span className="text-emerald-400">&#9679; Printer: {printer.name || printer.address}</span>
+              <button onClick={forgetPrinter} className="text-slate-400 hover:text-rose-400 text-xs underline">
+                Ganti
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setShowPrinterModal(true)}
+              className="text-yellow-400 hover:text-yellow-300 text-xs underline"
+            >
+              &#9675; Pilih Printer Bluetooth
+            </button>
+          )}
+          {printing && <span className="text-blue-400 text-xs animate-pulse">Mencetak...</span>}
+          {printError && <span className="text-rose-400 text-xs">{printError}</span>}
+        </div>
 
         <div className="mb-4 flex justify-between items-center gap-4">
           <button
@@ -385,6 +403,13 @@ export default function ServicesPage() {
           </div>
         </div>
       </div>
+
+      {showPrinterModal && (
+        <PrinterSelectModal
+          onSelect={selectPrinter}
+          onClose={() => setShowPrinterModal(false)}
+        />
+      )}
 
       {/* Modal tambah services */}
 
