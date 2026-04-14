@@ -28,8 +28,8 @@ export function usePrinter() {
     setPrintError(null);
 
     if (!isNative()) {
-      window.print();
-      return true;
+      // Kembalikan 'web' — komponen yang handle window.print() setelah DOM update
+      return 'web';
     }
 
     if (!getSavedPrinter()) {

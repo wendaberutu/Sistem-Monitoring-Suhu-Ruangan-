@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { createJob, getAllJobs, getTechnicians, getPenyetor, deleteJob, getAssetByKodeUnit } from "../../api/servicesJob.api";
 import Layout from "../../layout/servicesLayout";
 import { assignTechnician } from "../../api/servicesJob.api";
@@ -132,7 +133,11 @@ export default function ServicesPage() {
 
       const createdJob = res.data.data || res.data;
 
-      const qrDataUrl = await QRCode.toDataURL(createdJob.qr_code_uid);
+      const qrDataUrl = await QRCode.toDataURL(createdJob.qr_code_uid, {
+        width: 200,
+        margin: 2,
+        errorCorrectionLevel: "M",
+      });
 
       const now = new Date().toLocaleString("id-ID", {
         day: "2-digit",
@@ -149,8 +154,12 @@ export default function ServicesPage() {
         date: now,
       };
 
-      setPrintData(jobForPrint);
-      await printJob(jobForPrint);
+      flushSync(() => {
+        setPrintData(null);
+        setPrintData(jobForPrint);
+      });
+      const result = await printJob(jobForPrint);
+      if (result === "web") window.print();
 
       setShowModal(false);
 
@@ -186,14 +195,22 @@ export default function ServicesPage() {
 
   const handlePrint = async (job) => {
     try {
-      const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid);
+      const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid, {
+        width: 200,
+        margin: 2,
+        errorCorrectionLevel: "M",
+      });
       const now = new Date().toLocaleString("id-ID", {
         day: "2-digit", month: "2-digit", year: "numeric",
         hour: "2-digit", minute: "2-digit",
       });
       const jobForPrint = { ...job, qr: qrDataUrl, date: now };
-      setPrintData(jobForPrint);
-      await printJob(jobForPrint);
+      flushSync(() => {
+        setPrintData(null);
+        setPrintData(jobForPrint);
+      });
+      const result = await printJob(jobForPrint);
+      if (result === "web") window.print();
     } catch (err) {
       console.error("Print error:", err);
     }
@@ -270,7 +287,7 @@ export default function ServicesPage() {
           <button
             onClick={() => setShowModal(true)}
             className="bg-gradient-to-r from-cyan-500/60 via-sky-500/15 to-blue-600/70 text-white px-4 py-2 rounded-md hover:opacity-90 transition w-full sm:w-auto">
-            ADD Service
+            Tambah Servis Baru
           </button>
 
           <div className="flex flex-wrap gap-3 items-center">

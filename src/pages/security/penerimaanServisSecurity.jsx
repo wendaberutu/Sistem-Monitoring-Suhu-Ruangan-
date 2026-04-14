@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import {
   createJob,
   getAllJobs,
@@ -119,7 +120,11 @@ export default function ServicesPage() {
       });
 
       const createdJob = res.data.data;
-      const qrDataUrl = await QRCode.toDataURL(createdJob.qr_code_uid);
+      const qrDataUrl = await QRCode.toDataURL(createdJob.qr_code_uid, {
+        width: 200,
+        margin: 2,
+        errorCorrectionLevel: "M",
+      });
 
       const now = new Date().toLocaleString("id-ID", {
         day: "2-digit",
@@ -136,8 +141,12 @@ export default function ServicesPage() {
         date: now,
       };
 
-      setPrintData(jobForPrint);
-      await printJob(jobForPrint);
+      flushSync(() => {
+        setPrintData(null);           // reset dulu agar React pasti re-render
+        setPrintData(jobForPrint);
+      });
+      const result = await printJob(jobForPrint);
+      if (result === "web") window.print();
 
       setShowModal(false);
       setFormData({
@@ -195,7 +204,11 @@ export default function ServicesPage() {
 
   const handlePrint = async (job) => {
     try {
-      const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid);
+      const qrDataUrl = await QRCode.toDataURL(job.qr_code_uid, {
+        width: 200,
+        margin: 2,
+        errorCorrectionLevel: "M",
+      });
       const now = new Date().toLocaleString("id-ID", {
         day: "2-digit",
         month: "2-digit",
@@ -204,14 +217,14 @@ export default function ServicesPage() {
         minute: "2-digit",
       });
 
-      const jobForPrint = {
-        ...job,
-        qr: qrDataUrl,
-        date: now,
-      };
+      const jobForPrint = { ...job, qr: qrDataUrl, date: now };
 
-      setPrintData(jobForPrint);
-      await printJob(jobForPrint);
+      flushSync(() => {
+        setPrintData(null);
+        setPrintData(jobForPrint);
+      });
+      const result = await printJob(jobForPrint);
+      if (result === "web") window.print();
     } catch (err) {
       console.error("Print error:", err);
     }
