@@ -3,17 +3,18 @@ import { submitJob } from "../../api/servicesJob.api";
 
 export default function JobDetailModal({ job, onClose }) {
   const [action, setAction] = useState("");
+  const [isDamaged, setIsDamaged] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!action.trim()) {
-      alert("Tindakan wajib diisi");
+      alert(isDamaged ? "Alasan barang rusak wajib diisi" : "Tindakan wajib diisi");
       return;
     }
 
     try {
       setLoading(true);
-      await submitJob(job.id, action);
+      await submitJob(job.id, action, isDamaged);
       alert("Berhasil dikirim ke verifikasi");
       onClose();
     } catch (err) {
@@ -25,10 +26,7 @@ export default function JobDetailModal({ job, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center">
-
-      <div className="bg-[#0f172a] w-full max-w-3xl rounded-t-2xl sm:rounded-2xl p-4 md:p-8
-        border border-blue-500/30 shadow-2xl max-h-[90vh] overflow-y-auto">
-
+      <div className="bg-[#0f172a] w-full max-w-3xl rounded-t-2xl sm:rounded-2xl p-4 md:p-8 border border-blue-500/30 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between mb-6">
           <h2 className="text-2xl font-semibold">Detail Tugas</h2>
           <button onClick={onClose}>✕</button>
@@ -57,26 +55,49 @@ export default function JobDetailModal({ job, onClose }) {
 
         {job.status === "in_progress" && (
           <>
-            <textarea
+            <div className="mt-6 p-4 rounded-xl border border-red-500/20 bg-red-500/5">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isDamaged}
+                  onChange={(e) => setIsDamaged(e.target.checked)}
+                  className="w-5 h-5 accent-red-500"
+                />
+                <span className="text-red-400 font-medium">Barang Rusak</span>
+              </label>
+
+              {isDamaged && (
+                <p className="text-red-300/80 text-sm mt-2">
+                  jika di centang maka akan diajukan sebagai barang rusak dan akan di setujui oleh verifikator sebagai barang rusak 
+                </p>
+              )}
+            </div>
+
+            <textarea 
               value={action}
               onChange={(e) => setAction(e.target.value)}
               rows={4}
-              className="w-full mt-6 p-4 rounded-xl bg-[#111c2e]
-              border border-blue-500/20 focus:outline-none focus:border-blue-500"
-              placeholder="Tuliskan tindakan yang dilakukan..."
+              className="w-full mt-4 p-4 rounded-xl bg-[#111c2e] border border-blue-500/20 focus:outline-none focus:border-blue-500"
+              placeholder={
+                isDamaged
+                  ? "Tuliskan alasan barang rusak..."
+                  : "Tuliskan tindakan yang dilakukan..."
+              }
             />
 
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="mt-6 w-full py-3 rounded-xl font-semibold
-              bg-gradient-to-r from-blue-600 to-blue-700"
+              className={`mt-6 w-full py-3 rounded-xl font-semibold disabled:opacity-50 ${
+                isDamaged
+                  ? "bg-gradient-to-r from-red-600 to-red-700"
+                  : "bg-gradient-to-r from-blue-600 to-blue-700"
+              }`}
             >
               {loading ? "Mengirim..." : "Submit ke Verifikasi"}
             </button>
           </>
         )}
-
       </div>
     </div>
   );

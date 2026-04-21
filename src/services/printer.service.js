@@ -28,7 +28,7 @@ export function isNative() {
 
 // ─── Render HTML receipt → base64 image ──────────────────────────────────────
 
-function buildReceiptHTML(job) {
+function buildReceiptHTML(job,currentUser) {
   const date = job.date || new Date().toLocaleString('id-ID', {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
@@ -37,6 +37,13 @@ function buildReceiptHTML(job) {
   // Cek semua kemungkinan field nama penyetor dari API
   const penyetor = job.nama_penyetor || job.customer_name || job.penyetor || '-';
   const issue    = job.reported_issue || job.issue || '-';
+  const penerima =
+    job.received_by_name ||
+    job.nama_penerima ||
+    currentUser?.nama_pegawai ||
+    currentUser?.username ||
+    currentUser?.name ||
+    '-';
 
   const row = (label, value) =>
     `<tr>
@@ -77,6 +84,7 @@ function buildReceiptHTML(job) {
           ${row('Penyetor', penyetor)}
           ${row('Teknisi', job.technician_name || 'Belum ditentukan')}
           ${row('Issue', issue)}
+          ${row('Penerima', penerima)}
         </tbody>
       </table>
     </div>
@@ -135,13 +143,13 @@ async function ensureBluetoothPermission() {
   }
 }
 
-export async function printServiceTicket(job) {
+export async function printServiceTicket(job, currentUser)  {
   const saved = getSavedPrinter();
   if (!saved) throw new Error('NO_PRINTER_SELECTED');
 
   await ensureBluetoothPermission();
 
-  const base64 = await htmlToBase64(buildReceiptHTML(job));
+ const base64 = await htmlToBase64(buildReceiptHTML(job, currentUser));
 
   await LidtaCapacitorBlPrinter.connect({ address: saved.address });
   try {

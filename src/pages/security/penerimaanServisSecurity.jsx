@@ -11,8 +11,10 @@ import Layout from "../../layout/servicesLayout";
 import QRCode from "qrcode";
 import { usePrinter } from "../../hooks/usePrinter";
 import PrinterSelectModal from "../../components/PrinterSelectModal";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ServicesPage() {
+  const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -116,6 +118,7 @@ export default function ServicesPage() {
         item_description: formData.item_description,
         reported_issue: formData.issue,
         nama_penyetor: formData.customer_name,
+        received_by_name: user?.nama_pegawai || user?.username || user?.name || '',
         technician_id: null,
       });
 
@@ -137,6 +140,7 @@ export default function ServicesPage() {
       const jobForPrint = {
         ...createdJob,
         nama_penyetor: createdJob.nama_penyetor || formData.customer_name,
+        received_by_name: createdJob.received_by_name || user?.nama_pegawai || user?.username || user?.name || '',
         qr: qrDataUrl,
         date: now,
       };
@@ -145,7 +149,7 @@ export default function ServicesPage() {
         setPrintData(null);           // reset dulu agar React pasti re-render
         setPrintData(jobForPrint);
       });
-      const result = await printJob(jobForPrint);
+      const result = await printJob(jobForPrint, user);
       if (result === "web") window.print();
 
       setShowModal(false);
@@ -217,13 +221,19 @@ export default function ServicesPage() {
         minute: "2-digit",
       });
 
-      const jobForPrint = { ...job, qr: qrDataUrl, date: now };
+      const jobForPrint = {
+        ...job,
+        nama_penyetor: job.nama_penyetor || job.submitted_by_name || '-',
+        nama_penerima: job.received_by_name || '-',
+        qr: qrDataUrl,
+        date: now,
+      };
 
       flushSync(() => {
         setPrintData(null);
         setPrintData(jobForPrint);
       });
-      const result = await printJob(jobForPrint);
+      const result = await printJob(jobForPrint, user);
       if (result === "web") window.print();
     } catch (err) {
       console.error("Print error:", err);
@@ -244,15 +254,20 @@ export default function ServicesPage() {
 
   const displayedJobs = filteredJobs.slice(0, entriesPerPage);
 
-  const getStatusClass = (status) => {
-    if (status === "completed") return "bg-emerald-500/20 text-emerald-300";
-    if (status === "in_progress") return "bg-sky-500/20 text-sky-300";
-    if (status === "waiting") return "bg-amber-500/20 text-amber-300";
-    if (status === "assigned") return "bg-indigo-500/20 text-indigo-300";
-    if (status === "rejected") return "bg-rose-500/20 text-rose-300";
-    if (status === "pending_verification") return "bg-violet-500/20 text-violet-300";
-    return "bg-slate-500/20 text-slate-300";
-  };
+ const getStatusClass = (status) => {
+  if (status === "waiting") return "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+  if (status === "assigned") return "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
+  if (status === "in_progress") return "bg-sky-500/20 text-sky-300 border border-sky-500/30";
+  if (status === "pending_verification") return "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30";
+  if (status === "pending_verifikasi_qc") return "bg-blue-500/20 text-blue-300 border border-blue-500/30";
+  if (status === "approved_maintenance") return "bg-purple-500/20 text-purple-300 border border-purple-500/30";
+  if (status === "in_sanitation") return "bg-teal-500/20 text-teal-300 border border-teal-500/30";
+  if (status === "rejected") return "bg-rose-500/20 text-rose-300 border border-rose-500/30";
+  if (status === "completed") return "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+  if (status === "damaged") return "bg-red-500/20 text-red-300 border border-red-500/30";
+
+  return "";
+};
 
   return (
     <Layout>
@@ -373,6 +388,24 @@ export default function ServicesPage() {
                     <div>
                       <p className="text-slate-400 text-xs">QR Code</p>
                       <p className="text-slate-200 break-all">{job.qr_code_uid}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-slate-400 text-xs">Penyetor</p>
+                      <p className="text-slate-200 break-words">
+                        {job.nama_penyetor || (
+                          <span className="text-slate-400 italic">-</span>
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-slate-400 text-xs">Penerima</p>
+                      <p className="text-slate-200 break-words">
+                        {job.received_by_name || job.penerima_name || (
+                          <span className="text-slate-400 italic">-</span>
+                        )}
+                      </p>
                     </div>
 
                     <div>

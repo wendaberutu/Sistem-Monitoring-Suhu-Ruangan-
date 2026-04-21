@@ -6,8 +6,12 @@ import { assignTechnician } from "../../api/servicesJob.api";
 import QRCode from "qrcode";
 import { usePrinter } from "../../hooks/usePrinter";
 import PrinterSelectModal from "../../components/PrinterSelectModal";
+import { useAuth } from "../../context/AuthContext";
+
+
 
 export default function ServicesPage() {
+  const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -123,6 +127,7 @@ export default function ServicesPage() {
       const res = await createJob({
         kode_unit: formData.kode_unit || undefined,
         nama_penyetor: formData.customer_name,
+        received_by_name: user?.nama_pegawai || user?.username || user?.name || '-',
         item_name: formData.item_name,
         item_description: formData.item_description,
         reported_issue: formData.issue,
@@ -150,6 +155,7 @@ export default function ServicesPage() {
       const jobForPrint = {
         ...createdJob,
         nama_penyetor: createdJob.nama_penyetor || formData.customer_name,
+        nama_penerima: createdJob.received_by_name || user?.nama_pegawai || user?.username || user?.name || '-',
         qr: qrDataUrl,
         date: now,
       };
@@ -158,7 +164,7 @@ export default function ServicesPage() {
         setPrintData(null);
         setPrintData(jobForPrint);
       });
-      const result = await printJob(jobForPrint);
+      const result = await printJob(jobForPrint, user);
       if (result === "web") window.print();
 
       setShowModal(false);
@@ -204,12 +210,18 @@ export default function ServicesPage() {
         day: "2-digit", month: "2-digit", year: "numeric",
         hour: "2-digit", minute: "2-digit",
       });
-      const jobForPrint = { ...job, qr: qrDataUrl, date: now };
+      const jobForPrint = {
+        ...job,
+        nama_penyetor: job.nama_penyetor || job.submitted_by_name || '-',
+        nama_penerima: job.received_by_name || '-',
+        qr: qrDataUrl,
+        date: now,
+      };
       flushSync(() => {
         setPrintData(null);
         setPrintData(jobForPrint);
       });
-      const result = await printJob(jobForPrint);
+    const result = await printJob(jobForPrint, user);
       if (result === "web") window.print();
     } catch (err) {
       console.error("Print error:", err);
@@ -380,6 +392,7 @@ export default function ServicesPage() {
   ${job.status === "in_sanitation" && "bg-teal-500/20 text-teal-300 border border-teal-500/30"}
   ${job.status === "rejected" && "bg-rose-500/20 text-rose-300 border border-rose-500/30"}
   ${job.status === "completed" && "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"}
+  ${job.status === "damaged" && "bg-red-500/20 text-red-400 border border-red-500/50"}
 `}
                         >
                           {job.status.replace("_", " ")}
@@ -672,6 +685,10 @@ export default function ServicesPage() {
 
               <div className="line">
                 Issue : {printData.reported_issue || "-"}
+              </div>
+
+              <div className="line">
+                Penerima : {printData.nama_penerima || "-"}
               </div>
 
             </div>

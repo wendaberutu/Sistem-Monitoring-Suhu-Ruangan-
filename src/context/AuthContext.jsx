@@ -17,8 +17,10 @@ export const AuthProvider = ({ children }) => {
         const res = await authApi.me();
 
         if (res?.data?.user) {
-          setUserState(res.data.user);
-          sessionStorage.setItem("user", JSON.stringify(res.data.user));
+          const saved = JSON.parse(sessionStorage.getItem("user") || "null");
+          const merged = { username: saved?.username, ...res.data.user };
+          setUserState(merged);
+          sessionStorage.setItem("user", JSON.stringify(merged));
         }
       } catch (err) {
         console.error("Session invalid");

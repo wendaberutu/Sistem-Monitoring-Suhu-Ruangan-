@@ -24,7 +24,7 @@ export function usePrinter() {
     setPrinter(null);
   }, []);
 
-  const printJob = useCallback(async (job) => {
+  const printJob = useCallback(async (job, currentUser) => {
     setPrintError(null);
 
     if (!isNative()) {
@@ -39,7 +39,7 @@ export function usePrinter() {
 
     setPrinting(true);
     try {
-      await printServiceTicket(job);
+      await printServiceTicket(job, currentUser);
       return true;
     } catch (err) {
       const code = err?.message;

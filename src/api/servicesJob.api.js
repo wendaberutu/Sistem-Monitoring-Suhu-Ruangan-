@@ -76,9 +76,10 @@ export const claimJobByQR = (uid) => {
 /* ===============================
    SUBMIT JOB (TEKNISI)
 ================================= */
-export const submitJob = (jobId, technician_action) => {
+export const submitJob = (jobId, technician_action, is_damaged) => {
   return ApiJob.patch(`/jobs/${jobId}/submit`, {
     technician_action,
+    is_damaged,
   });
 };
 

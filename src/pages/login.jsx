@@ -73,7 +73,7 @@ export default function Login() {
         </div>
 
         <h2 className="text-center text-lg font-semibold">
-          waleta System Maintenance
+          Waleta System Maintenance
         </h2>
         <p className="text-center text-xs text-slate-400 mt-1 mb-6">
           Silahkan login untuk melanjutkan
