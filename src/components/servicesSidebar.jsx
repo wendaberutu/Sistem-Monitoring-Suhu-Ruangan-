@@ -13,11 +13,13 @@ const menuByRole = {
     { label: "Dashboard", to: "/technician", icon: "📊" },
     { label: "klaim Tugas", to: "/technician/claim", icon: "📋" },
     { label: "Tugas Saya", to: "/technician/jobs", icon: "🛠️" },
+    { label: "Riwayat Pekerjaan", to: "/technician/history", icon: "📜"}
   ],
   verifier: [
     { label: "Dashboard", to: "/verify", icon: "📊" },
     { label: "klaim Tugas", to: "/verify/claim", icon: "📋" },
     { label: "Tugas Saya", to: "/verify/jobs", icon: "🛠️" },
+    { label: "Riwayat Pekerjaan", to: "/verify/history", icon: "📜"}
   ],
   security: [
     { label: "Penerimaan Service", to: "/security/penerimaan-service", icon: "🛠️" },

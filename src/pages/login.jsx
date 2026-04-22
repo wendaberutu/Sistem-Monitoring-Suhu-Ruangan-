@@ -122,6 +122,18 @@ export default function Login() {
         >
           {loading ? "Loading..." : "Login"}
         </button>
+
+
+                <p className="text-center text-xs text-slate-400 my-4">
+          - User -
+        </p>
+
+        <button
+          onClick={() => navigate("/track")}
+          className="w-full py-2 rounded-xl border border-slate-600 hover:bg-slate-800/40 text-sm text-slate-200 transition"
+        >
+          📷 Scan QR / Cek Status
+        </button>
       </div>
     </div>
   );

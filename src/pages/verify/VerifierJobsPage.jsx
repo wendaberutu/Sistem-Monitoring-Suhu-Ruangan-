@@ -236,10 +236,15 @@ export default function VerifierJobsPage() {
             job={rejectJob}
             onClose={() => setRejectJob(null)}
             onSubmit={async (note) => {
-              await verifyJob(rejectJob.id, "rejected", note);
-              setRejectJob(null);
-              setSelectedJob(null);
-              fetchJobs();
+              try {
+                await verifyJob(rejectJob.id, "rejected", note);
+                setRejectJob(null);
+                setSelectedJob(null);
+                fetchJobs();
+              } catch (err) {
+                console.error("Reject error:", err.response?.data || err.message);
+                alert("Gagal menolak: " + (err.response?.data?.message || err.message));
+              }
             }}
           />
         )}

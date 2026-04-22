@@ -19,10 +19,12 @@ import PenerimaanSecurity from "./pages/security/penerimaanServisSecurity";
 import TechnicianPage from "./pages/technician/technician.page";
 import Claimjob from "./pages/technician/claimTask";
 import MyJobsPage from "./pages/technician/jobs.page";
+import HistoryPage from "./pages/technician/HistoryPage";
 import VerifierJobsPage from "./pages/verify/VerifierJobsPage";
 import Sanitasipage from "./pages/sanitasi/sanitasi.page";
 import QCPage from "./pages/qc/qc.page";
 
+import TrackPage from "./pages/track/TrackPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -108,6 +110,15 @@ export default function App() {
             }
           />
 
+          <Route
+            path="/technician/history"
+            element={
+              <ProtectedRoute role="technician">
+                <HistoryPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* ================= VERIFIER ================= */}
           <Route
             path="/verify"
@@ -136,6 +147,15 @@ export default function App() {
             }
           />
 
+          <Route
+            path="/verify/history"
+            element={
+              <ProtectedRoute role="verifier">
+                <HistoryPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* ================= SANITASI ================= */}
           <Route
             path="/sanitasi"
@@ -160,6 +180,9 @@ export default function App() {
           <Route path="/rooms" element={<AppLayout><RoomMonitoring /></AppLayout>} />
           <Route path="/water" element={<AppLayout><WaterMonitoring /></AppLayout>} />
           <Route path="/energy" element={<AppLayout><EnergyMonitoring /></AppLayout>} />
+
+          {/* ================= TRACKING (PUBLIC) ================= */}
+          <Route path="/track" element={<TrackPage />} />
 
           {/* ================= DEFAULT ================= */}
           <Route path="/" element={<Navigate to="/login" replace />} />

@@ -161,3 +161,10 @@ export const getPenyetor = () => {
 export const getAssetByKodeUnit = (kodeUnit) => {
   return ApiJob.get(`/jobs/assets/lookup/${kodeUnit}`);
 };
+
+/* ===============================
+   RIWAYAT PEKERJAAN
+================================= */
+export const getJobHistory = () => {
+  return ApiJob.get("/jobs/history");
+};
