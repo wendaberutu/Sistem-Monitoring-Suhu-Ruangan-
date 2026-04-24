@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Layout from "../../layout/servicesLayout";
 import { getAvailableJobs, claimJob, claimJobByQR } from "../../api/servicesJob.api";
 import { useQRScanner } from "../../hooks/useQRScanner";
@@ -7,7 +7,9 @@ export default function ClaimTaskPage() {
   const [availableTasks, setAvailableTasks] = useState([]);
   const [loadingId, setLoadingId] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [scanning, setScanning] = useState(false);
+  const processingRef = useRef(false);
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -28,26 +30,34 @@ export default function ClaimTaskPage() {
       await claimJob(id);
       await fetchJobs();
     } catch (err) {
-      alert(err.response?.data?.message || "Gagal claim");
+      setErrorMessage(err.response?.data?.message || "Gagal claim");
     } finally {
       setLoadingId(null);
     }
   };
 
   const handleClaimQR = useCallback(
-    async (uid) => {
+    async (scanned) => {
+      if (processingRef.current) return;
+      processingRef.current = true;
+      setScanning(false);
+
+      const uid = scanned.includes("uid=")
+        ? new URL(scanned).searchParams.get("uid") ?? scanned.trim()
+        : scanned.trim();
+
       try {
         setLoadingId(uid);
+        setErrorMessage("");
         await claimJobByQR(uid);
-        setSuccessMessage("Job berhasil di-claim ✅");
+        setSuccessMessage("Job berhasil di-claim");
         await fetchJobs();
-
-        setTimeout(() => setSuccessMessage(""), 2000);
+        setTimeout(() => setSuccessMessage(""), 3000);
       } catch (err) {
-        alert(err.response?.data?.message || "QR tidak valid");
+        setErrorMessage(err.response?.data?.message || "QR tidak valid");
       } finally {
         setLoadingId(null);
-        setScanning(false);
+        processingRef.current = false;
       }
     },
     [fetchJobs]
@@ -56,18 +66,23 @@ export default function ClaimTaskPage() {
   const { isNative, startNativeScan, startWebScan, stopWebScan } =
     useQRScanner(handleClaimQR);
 
-  // ── Web: mulai html5-qrcode setelah elemen DOM siap ──────────────────────
+  const prevScanningRef = useRef(false);
+  useEffect(() => {
+    if (prevScanningRef.current && !scanning) stopWebScan();
+    prevScanningRef.current = scanning;
+  }, [scanning, stopWebScan]);
+
   useEffect(() => {
     if (!scanning || isNative) return;
-
     const timeout = setTimeout(() => {
       startWebScan("reader-claim").catch(() => setScanning(false));
     }, 200);
-
     return () => clearTimeout(timeout);
   }, [scanning, isNative, startWebScan]);
 
   const handleStart = async () => {
+    setErrorMessage("");
+    setSuccessMessage("");
     if (isNative) {
       await startNativeScan();
     } else {
@@ -119,10 +134,14 @@ export default function ClaimTaskPage() {
                     Mulai Scan QR
                   </button>
 
-                  {/* Pesan sukses setelah native scan */}
                   {successMessage && (
-                    <div className="w-full max-w-md px-4 py-3 bg-green-600/20 border border-green-500/40 text-green-400 rounded-lg text-sm sm:text-base">
+                    <div className="w-full max-w-md px-4 py-3 bg-green-600/20 border border-green-500/40 text-green-400 rounded-xl text-sm sm:text-base">
                       {successMessage}
+                    </div>
+                  )}
+                  {errorMessage && (
+                    <div className="w-full max-w-md px-4 py-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl text-sm sm:text-base">
+                      {errorMessage}
                     </div>
                   )}
                 </>
@@ -137,8 +156,13 @@ export default function ClaimTaskPage() {
                   </div>
 
                   {successMessage && (
-                    <div className="w-full max-w-md mt-2 px-4 py-3 bg-green-600/20 border border-green-500/40 text-green-400 rounded-lg text-sm sm:text-base">
+                    <div className="w-full max-w-md mt-2 px-4 py-3 bg-green-600/20 border border-green-500/40 text-green-400 rounded-xl text-sm sm:text-base">
                       {successMessage}
+                    </div>
+                  )}
+                  {errorMessage && (
+                    <div className="w-full max-w-md mt-2 px-4 py-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl text-sm sm:text-base">
+                      {errorMessage}
                     </div>
                   )}
 

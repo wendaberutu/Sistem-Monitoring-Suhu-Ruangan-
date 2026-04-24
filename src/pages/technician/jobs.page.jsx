@@ -1,13 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Layout from "../../layout/servicesLayout";
 import JobDetailModal from "./JobDetailModal";
 import { getMyJobs } from "../../api/servicesJob.api";
+import { useQRScanner } from "../../hooks/useQRScanner";
 
 export default function MyJobsPage() {
   const [activeTab, setActiveTab] = useState("Semua");
   const [selectedJob, setSelectedJob] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [scanning, setScanning] = useState(false);
+  const [scanMessage, setScanMessage] = useState("");
+  const processingRef = useRef(false);
 
   const tabs = ["Semua", "Sedang Berjalan", "Pending"];
 
@@ -26,6 +30,64 @@ export default function MyJobsPage() {
     }
   };
 
+  const handleScanTechnician = useCallback(
+    (scanned) => {
+      if (processingRef.current) return;
+      processingRef.current = true;
+      setScanning(false);
+
+      const uid = scanned.includes("uid=")
+        ? new URL(scanned).searchParams.get("uid") ?? scanned.trim()
+        : scanned.trim();
+
+      const found = jobs.find((j) => j.qr_code_uid === uid);
+      if (found) {
+        if (found.status === "in_progress") {
+          setScanMessage("");
+          setSelectedJob(found);
+        } else {
+          setScanMessage("Job tidak bisa disubmit (status: " + found.status.replaceAll("_", " ") + ")");
+        }
+      } else {
+        setScanMessage("QR tidak ditemukan di daftar tugasmu");
+      }
+
+      processingRef.current = false;
+    },
+    [jobs]
+  );
+
+  const { isNative, startNativeScan, startWebScan, stopWebScan } =
+    useQRScanner(handleScanTechnician);
+
+  const prevScanningRef = useRef(false);
+  useEffect(() => {
+    if (prevScanningRef.current && !scanning) stopWebScan();
+    prevScanningRef.current = scanning;
+  }, [scanning, stopWebScan]);
+
+  useEffect(() => {
+    if (!scanning || isNative) return;
+    const t = setTimeout(() => {
+      startWebScan("reader-technician").catch(() => setScanning(false));
+    }, 200);
+    return () => clearTimeout(t);
+  }, [scanning, isNative, startWebScan]);
+
+  const handleStartScan = async () => {
+    setScanMessage("");
+    if (isNative) {
+      await startNativeScan();
+    } else {
+      setScanning(true);
+    }
+  };
+
+  const handleStopScan = async () => {
+    await stopWebScan();
+    setScanning(false);
+  };
+
   const filteredJobs = jobs.filter((job) => {
     if (activeTab === "Semua") return true;
     if (activeTab === "Sedang Berjalan") return job.status === "in_progress";
@@ -42,9 +104,63 @@ export default function MyJobsPage() {
         />
 
         <div className="relative z-10 max-w-6xl mx-auto">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-5 md:mb-10">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-5 md:mb-8">
             Tugas Saya
           </h1>
+
+          {/* ── Tombol Scan QR ── */}
+          <div className="mb-6 md:mb-10">
+            {!scanning ? (
+              <button
+                onClick={handleStartScan}
+                className="relative group w-full sm:w-auto flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-semibold text-base overflow-hidden
+                  bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600
+                  shadow-lg shadow-cyan-500/40
+                  hover:shadow-cyan-500/60 hover:scale-[1.02]
+                  active:scale-[0.98] transition-all duration-200"
+              >
+                {/* glow pulse background */}
+                <span className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-300 pointer-events-none" />
+
+                {/* pulsing ring */}
+                <span className="relative flex items-center justify-center w-8 h-8">
+                  <span className="absolute w-8 h-8 rounded-full bg-white/20 animate-ping" />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="relative w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/>
+                    <path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>
+                  </svg>
+                </span>
+
+                <span className="relative text-white tracking-wide">Scan QR untuk Submit</span>
+              </button>
+            ) : (
+              <div className="w-full sm:max-w-sm space-y-3">
+                <div className="relative rounded-2xl overflow-hidden border border-cyan-500/40 shadow-xl shadow-cyan-500/20">
+                  {/* scan line animation */}
+                  <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-[scanline_2s_linear_infinite] z-10 pointer-events-none" />
+                  <div className="bg-white p-3">
+                    <div id="reader-technician" className="w-full overflow-hidden rounded-xl" />
+                  </div>
+                </div>
+                <button
+                  onClick={handleStopScan}
+                  className="w-full py-2.5 rounded-xl bg-slate-700/80 border border-slate-600 text-slate-300 hover:bg-slate-700 transition text-sm font-medium"
+                >
+                  Tutup Scanner
+                </button>
+              </div>
+            )}
+
+            {scanMessage && (
+              <p className={`mt-3 text-sm px-4 py-2.5 rounded-xl border w-full sm:w-auto inline-block ${
+                scanMessage === ""
+                  ? "hidden"
+                  : "bg-red-500/10 border-red-500/30 text-red-400"
+              }`}>
+                {scanMessage}
+              </p>
+            )}
+          </div>
 
           <div className="flex flex-wrap gap-2 mb-5 md:mb-10">
             {tabs.map((tab) => (
