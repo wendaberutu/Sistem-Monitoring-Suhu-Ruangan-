@@ -2,7 +2,7 @@ import { useState } from "react";
 import Sidebar from "../components/servicesSidebar";
 import Navbar from "../components/navbar";
 
-export default function Layout({ children, variant }) {
+export default function Layout({ children, variant, isFullscreen }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isTechnician = variant === "technician";
@@ -20,19 +20,27 @@ export default function Layout({ children, variant }) {
         />
       )}
 
-      {sidebarOpen && (
+      {!isFullscreen && sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      <Sidebar isOpen={sidebarOpen} />
+      {!isFullscreen && <Sidebar isOpen={sidebarOpen} />}
 
       <div className="flex-1 flex flex-col relative z-10 min-w-0 min-h-0">
-        <Navbar onToggleSidebar={() => setSidebarOpen((v) => !v)} />
+        {!isFullscreen && (
+          <Navbar onToggleSidebar={() => setSidebarOpen((v) => !v)} />
+        )}
 
-        <main className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain p-3 md:p-6 pb-24 md:pb-6">
+        <main
+          className={`flex-1 min-h-0 overflow-y-auto overscroll-y-contain scrollbar-hide ${
+            isFullscreen
+              ? "p-4 md:p-8"
+              : "p-3 md:p-6 pb-24 md:pb-6"
+          }`}
+        >
           {children}
         </main>
       </div>
