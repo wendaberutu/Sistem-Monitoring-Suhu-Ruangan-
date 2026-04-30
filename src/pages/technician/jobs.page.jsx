@@ -97,7 +97,7 @@ export default function MyJobsPage() {
 
   return (
     <Layout variant="technician">
-      <div className="min-h-screen w-full text-white relative overflow-hidden px-3 py-4 sm:px-4 sm:py-6 md:px-10 md:py-10">
+      <div className="w-full text-white relative px-3 py-4 sm:px-4 sm:py-6 md:px-10 md:py-10">
         <div
           className="absolute inset-0 pointer-events-none
           bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.12),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(37,99,235,0.08),transparent_40%)]"

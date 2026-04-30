@@ -10,6 +10,7 @@ import Login from "./pages/login";
 import AdminPage from "./pages/admin/admin.page";
 import Penerimaan from "./pages/admin/PenerimaanService.page";
 import InventoryPage from "./pages/admin/inventory.page";
+import SparepartPage from "./pages/admin/sparepart.page";
 import AdminRoomMonitoring from "./pages/admin/AdminRoomMonitoring";
 import AppLayout from "./layout/AppLayout";
 import RoomMonitoring from "./pages/RoomMonitoring";
@@ -60,6 +61,15 @@ export default function App() {
             element={
               <ProtectedRoute role="admin">
                 <InventoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/sparepart"
+            element={
+              <ProtectedRoute role="admin">
+                <SparepartPage />
               </ProtectedRoute>
             }
           />

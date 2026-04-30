@@ -47,7 +47,7 @@ export default function HistoryPage() {
 
   return (
     <Layout variant={layoutVariant}>
-      <div className="text-white relative overflow-hidden">
+      <div className="text-white relative">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.12),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(37,99,235,0.08),transparent_40%)]" />
 
         <div className="relative z-10 max-w-6xl mx-auto">

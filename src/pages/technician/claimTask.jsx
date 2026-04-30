@@ -97,7 +97,7 @@ export default function ClaimTaskPage() {
 
   return (
     <Layout variant="technician">
-      <div className="min-h-screen w-full text-white relative overflow-hidden bg-[#071120]">
+      <div className="w-full text-white relative bg-[#071120]">
         <div
           className="absolute inset-0 pointer-events-none
           bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.15),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(37,99,235,0.12),transparent_40%)]"

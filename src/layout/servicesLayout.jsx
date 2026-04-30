@@ -9,7 +9,7 @@ export default function Layout({ children, variant, isFullscreen }) {
 
   return (
     <div
-      className={`flex h-dvh md:min-h-screen text-white relative overflow-hidden ${
+      className={`flex h-screen text-white relative overflow-hidden ${
         isTechnician ? "bg-[#0b1120]" : "bg-slate-800"
       }`}
     >
@@ -40,6 +40,7 @@ export default function Layout({ children, variant, isFullscreen }) {
               ? "p-4 md:p-8"
               : "p-3 md:p-6 pb-24 md:pb-6"
           }`}
+          style={{ touchAction: "pan-y" }}
         >
           {children}
         </main>

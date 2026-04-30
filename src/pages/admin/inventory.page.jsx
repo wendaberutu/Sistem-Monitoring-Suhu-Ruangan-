@@ -2,42 +2,25 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import * as QRCode from "qrcode";
 import Layout from "../../layout/servicesLayout";
 import { useQRScanner } from "../../hooks/useQRScanner";
-
-const dummyInventory = [
-  { id: 1, code: "BRG001", name: "Bor Tangan", stock: 5, available: 3 },
-  { id: 2, code: "BRG002", name: "Tang Kombinasi", stock: 8, available: 6 },
-  { id: 3, code: "BRG003", name: "Obeng Set", stock: 10, available: 7 },
-  { id: 4, code: "BRG004", name: "Kunci Inggris", stock: 4, available: 2 },
-];
-
-const dummyHistory = [
-  {
-    id: 1,
-    inventoryId: 1,
-    itemName: "Bor Tangan",
-    borrower: "112233 - Budi",
-    status: "borrowed",
-    borrowDate: new Date().toISOString(),
-    returnDate: null,
-    transactionCode: "TRX-BOR-001",
-  },
-  {
-    id: 2,
-    inventoryId: 2,
-    itemName: "Tang Kombinasi",
-    borrower: "223344 - Andi",
-    status: "returned",
-    borrowDate: "2026-04-20T08:00:00",
-    returnDate: "2026-04-20T15:20:00",
-    transactionCode: "TRX-TANG-002",
-  },
-];
+import {
+  getDashboard,
+  createBorrow,
+  checkReturn,
+  processReturn,
+  getKaryawanById,
+} from "../../api/peminjamanAset.api";
 
 export default function InventoryPage() {
   const [activeTab, setActiveTab] = useState("pinjam");
+  const [loading, setLoading] = useState(true);
 
-  const [inventory, setInventory] = useState(dummyInventory);
-  const [history, setHistory] = useState(dummyHistory);
+  const [inventory, setInventory] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [stats, setStats] = useState({
+    totalStock: 0,
+    totalAvailable: 0,
+    totalBorrowed: 0,
+  });
 
   const [borrowDate, setBorrowDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -47,6 +30,7 @@ export default function InventoryPage() {
 
   const [itemCodeInput, setItemCodeInput] = useState("");
   const [itemNameInput, setItemNameInput] = useState("");
+  const [selectedInventory, setSelectedInventory] = useState(null);
   const [selectedQty, setSelectedQty] = useState(1);
 
   const [borrowList, setBorrowList] = useState([]);
@@ -56,149 +40,305 @@ export default function InventoryPage() {
   const [scannedTransaction, setScannedTransaction] = useState(null);
   const [scanMode, setScanMode] = useState(null);
   const [scanning, setScanning] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+
+  const [toast, setToast] = useState(null);
 
   const scanRef = useRef(null);
+  const toastTimer = useRef(null);
+  const scanLockRef = useRef(false);
+  const scanModeRef = useRef(null);
+  const stopWebScanRef = useRef(null);
 
-  const totalStock = useMemo(
-    () => inventory.reduce((sum, item) => sum + Number(item.stock || 0), 0),
-    [inventory]
-  );
+  const showToast = useCallback((text, type = "error") => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ text, type });
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
+  }, []);
 
-  const totalAvailable = useMemo(
-    () => inventory.reduce((sum, item) => sum + Number(item.available || 0), 0),
-    [inventory]
-  );
-
-  const totalBorrowed = useMemo(
-    () => history.filter((item) => item.status === "borrowed").length,
-    [history]
-  );
+  const closeToast = useCallback(() => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(null);
+  }, []);
 
   const borrowedItems = useMemo(
     () => history.filter((item) => item.status === "borrowed"),
     [history]
   );
 
-  const findInventoryByCode = (code) => {
-    return inventory.find(
-      (item) => item.code.toLowerCase() === code.trim().toLowerCase()
-    );
-  };
-
-  const parseBorrowerQr = (rawText) => {
-    const text = String(rawText || "").trim();
-
+  const loadData = useCallback(async () => {
     try {
-      const parsed = JSON.parse(text);
-      return {
-        id: parsed.id || parsed.borrowerId || parsed.nik || "",
-        name: parsed.name || parsed.borrowerName || parsed.nama || "",
-      };
-    } catch (_) {}
+      setLoading(true);
 
-    if (text.includes("|")) {
-      const [id, name] = text.split("|");
-      return {
-        id: (id || "").trim(),
-        name: (name || "").trim(),
-      };
+      const res = await getDashboard();
+      const dashboard = res?.data?.data || {};
+
+      const inventoryData = Array.isArray(dashboard.inventory)
+        ? dashboard.inventory
+        : [];
+
+      const historyData = Array.isArray(dashboard.history)
+        ? dashboard.history
+        : [];
+
+      console.log("DASHBOARD:", dashboard);
+      console.log("INVENTORY:", inventoryData);
+
+      setInventory(inventoryData);
+      setHistory(historyData);
+      setStats({
+        totalStock: Number(dashboard.totalStock || 0),
+        totalAvailable: Number(dashboard.totalAvailable || 0),
+        totalBorrowed: Number(dashboard.totalBorrowed || 0),
+      });
+    } catch (err) {
+      console.error("Gagal memuat data:", err);
+      showToast(err?.response?.data?.message || "Gagal memuat data inventory");
+    } finally {
+      setLoading(false);
     }
+  }, [showToast]);
 
-    if (text.includes(";")) {
-      const [id, name] = text.split(";");
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const findInventoryByCode = useCallback(
+    (code) => {
+      const raw = String(code || "").trim();
+
+      if (!raw) return null;
+
+      const keyword = raw.toLowerCase();
+      const paddedKeyword = raw.padStart(4, "0").toLowerCase();
+
+      return inventory.find((item) => {
+        const itemCode = String(item.code || "").trim().toLowerCase();
+        const itemName = String(item.name || "").trim().toLowerCase();
+
+        return (
+          itemCode === keyword ||
+          itemCode === paddedKeyword ||
+          itemName.includes(keyword)
+        );
+      });
+    },
+    [inventory]
+  );
+
+  const normalizeScanText = useCallback((value) => {
+    if (typeof value === "string") return value.trim();
+
+    if (value?.text) return String(value.text).trim();
+    if (value?.content) return String(value.content).trim();
+    if (value?.result) return String(value.result).trim();
+    if (value?.data) return String(value.data).trim();
+
+    return String(value || "").trim();
+  }, []);
+
+  const parseBorrowerQr = useCallback(
+    (rawText) => {
+      const text = normalizeScanText(rawText);
+
+      if (!text) {
+        return { id: "", name: "" };
+      }
+
+      try {
+        const parsed = JSON.parse(text);
+
+        return {
+          id: String(
+            parsed.id_pegawai ||
+              parsed.idPegawai ||
+              parsed.id ||
+              parsed.borrowerId ||
+              parsed.nik ||
+              parsed.uid ||
+              ""
+          ).trim(),
+          name: String(
+            parsed.nama_pegawai ||
+              parsed.namaPegawai ||
+              parsed.name ||
+              parsed.borrowerName ||
+              parsed.nama ||
+              ""
+          ).trim(),
+        };
+      } catch (_) {}
+
+      if (/ - /.test(text)) {
+        const idx = text.indexOf(" - ");
+        return {
+          id: text.slice(0, idx).trim(),
+          name: text.slice(idx + 3).trim(),
+        };
+      }
+
+      if (text.includes("|")) {
+        const [id, name] = text.split("|");
+        return { id: (id || "").trim(), name: (name || "").trim() };
+      }
+
+      if (text.includes(";")) {
+        const [id, name] = text.split(";");
+        return { id: (id || "").trim(), name: (name || "").trim() };
+      }
+
+      const idMatch = text.match(/\b\d{6,20}\b/);
+
+      if (idMatch) {
+        return {
+          id: idMatch[0],
+          name: "",
+        };
+      }
+
       return {
-        id: (id || "").trim(),
-        name: (name || "").trim(),
+        id: text,
+        name: "",
       };
-    }
+    },
+    [normalizeScanText]
+  );
 
-    return {
-      id: text,
-      name: "",
-    };
-  };
+  const fetchBorrowerById = useCallback(
+    async (id) => {
+      const cleanId = String(id || "").trim();
 
-  const processReturnTransaction = (trx) => {
+      if (!cleanId) {
+        setBorrowerName("");
+        return null;
+      }
+
+      try {
+        const res = await getKaryawanById(cleanId);
+        const karyawan = res?.data?.data;
+
+        if (!karyawan) {
+          setBorrowerName("");
+          showToast(`ID pegawai ${cleanId} tidak ditemukan di data karyawan`);
+          return null;
+        }
+
+        setBorrowerId(karyawan.id_pegawai);
+        setBorrowerName(karyawan.nama_pegawai);
+
+        return karyawan;
+      } catch (err) {
+        setBorrowerName("");
+        showToast(
+          err?.response?.data?.message ||
+            `ID pegawai ${cleanId} tidak ditemukan di data karyawan`
+        );
+        return null;
+      }
+    },
+    [showToast]
+  );
+
+  const processReturnTransaction = async (trx) => {
     if (!trx || trx.status !== "borrowed") return;
 
-    setHistory((prev) =>
-      prev.map((item) =>
-        item.id === trx.id
-          ? {
-              ...item,
-              status: "returned",
-              returnDate: new Date().toISOString(),
-            }
-          : item
-      )
-    );
+    try {
+      await processReturn({
+        scanCode: trx.transactionCode,
+      });
 
-    setInventory((prev) =>
-      prev.map((item) =>
-        item.id === trx.inventoryId
-          ? { ...item, available: Number(item.available) + 1 }
-          : item
-      )
-    );
-
-    setScannedTransaction(null);
-    setScanCode("");
-    scanRef.current?.focus();
-    setSuccessMessage("Barang berhasil dikembalikan ✅");
-    setTimeout(() => setSuccessMessage(""), 2000);
+      setScannedTransaction(null);
+      setScanCode("");
+      scanRef.current?.focus();
+      showToast("Barang berhasil dikembalikan", "success");
+      await loadData();
+    } catch (err) {
+      showToast(err?.response?.data?.message || "Gagal memproses pengembalian");
+    }
   };
 
   const handleUnifiedScan = useCallback(
     async (decodedText) => {
-      if (scanMode === "borrower") {
-        const result = parseBorrowerQr(decodedText);
+      if (scanLockRef.current) return;
 
-        if (!result.id) {
-          alert("QR ID peminjam tidak valid");
-          setScanning(false);
-          setScanMode(null);
-          return;
-        }
+      scanLockRef.current = true;
 
-        setBorrowerId(result.id);
-        if (result.name) setBorrowerName(result.name);
+      const currentMode = scanModeRef.current || scanMode;
+      const text = normalizeScanText(decodedText);
 
-        setSuccessMessage("ID peminjam berhasil di-scan ✅");
-        setTimeout(() => setSuccessMessage(""), 2000);
-      }
+      console.log("HASIL SCAN:", text);
+      console.log("SCAN MODE:", currentMode);
 
-      if (scanMode === "return") {
-        const code = String(decodedText || "").trim();
-        setScanCode(code);
-
-        const found = history.find(
-          (item) =>
-            item.transactionCode.toLowerCase() === code.toLowerCase() &&
-            item.status === "borrowed"
-        );
-
-        if (!found) {
-          setScannedTransaction(null);
-          alert("Kode tidak valid atau barang sudah dikembalikan");
-          setScanning(false);
-          setScanMode(null);
-          return;
-        }
-
-        setScannedTransaction(found);
-        setSuccessMessage("Kode pengembalian berhasil di-scan ✅");
-        setTimeout(() => setSuccessMessage(""), 2000);
-      }
+      await stopWebScanRef.current?.().catch(() => {});
 
       setScanning(false);
       setScanMode(null);
+      scanModeRef.current = null;
+
+      if (currentMode === "borrower") {
+        const result = parseBorrowerQr(text);
+        const cleanId = String(result.id || text || "").trim();
+
+        console.log("ID HASIL PARSE:", cleanId);
+
+        if (!cleanId) {
+          showToast("QR ID peminjam tidak valid");
+          scanLockRef.current = false;
+          return;
+        }
+
+        setBorrowerId(cleanId);
+
+        if (result.name) {
+          setBorrowerName(result.name);
+        }
+
+        const karyawan = await fetchBorrowerById(cleanId);
+
+        console.log("DATA KARYAWAN:", karyawan);
+
+        if (karyawan) {
+          showToast("ID peminjam berhasil di-scan", "success");
+        }
+
+        return;
+      }
+
+      if (currentMode === "return") {
+        const code = text;
+        setScanCode(code);
+
+        try {
+          const res = await checkReturn(code);
+          setScannedTransaction(res.data.data);
+          showToast("Kode pengembalian berhasil di-scan", "success");
+        } catch (err) {
+          setScannedTransaction(null);
+          showToast(
+            err?.response?.data?.message ||
+              "Kode tidak valid atau barang sudah dikembalikan"
+          );
+        }
+
+        return;
+      }
+
+      scanLockRef.current = false;
     },
-    [scanMode, history]
+    [
+      scanMode,
+      normalizeScanText,
+      parseBorrowerQr,
+      fetchBorrowerById,
+      showToast,
+    ]
   );
 
   const { isNative, startNativeScan, startWebScan, stopWebScan } =
     useQRScanner(handleUnifiedScan);
+
+  useEffect(() => {
+    stopWebScanRef.current = stopWebScan;
+  }, [stopWebScan]);
 
   useEffect(() => {
     if (!scanning || isNative || !scanMode) return;
@@ -217,6 +357,9 @@ export default function InventoryPage() {
   }, [scanning, isNative, scanMode, startWebScan]);
 
   const handleStartScanner = async (mode) => {
+    scanLockRef.current = false;
+    scanModeRef.current = mode;
+
     if (scanning) {
       await stopWebScan().catch(() => {});
     }
@@ -231,53 +374,70 @@ export default function InventoryPage() {
   };
 
   const handleStopScanner = async () => {
+    scanLockRef.current = true;
+    scanModeRef.current = null;
+
     await stopWebScan().catch(() => {});
+
     setScanning(false);
     setScanMode(null);
+
+    setTimeout(() => {
+      scanLockRef.current = false;
+    }, 500);
+  };
+
+  const handleSelectInventoryByInput = (value) => {
+    setItemCodeInput(value);
+
+    const found = findInventoryByCode(value);
+
+    if (found) {
+      setSelectedInventory(found);
+      setItemCodeInput(found.code);
+      setItemNameInput(found.name);
+    } else {
+      setSelectedInventory(null);
+      setItemNameInput("");
+    }
   };
 
   const handleAddBorrowItem = () => {
     const code = itemCodeInput.trim();
-    const manualName = itemNameInput.trim();
     const qty = Number(selectedQty);
 
     if (!code) {
-      alert("Kode barang wajib diisi");
+      showToast("Kode barang wajib diisi");
       return;
     }
 
-    if (!manualName) {
-      alert("Nama barang wajib diisi");
+    const selected = selectedInventory || findInventoryByCode(code);
+
+    if (!selected) {
+      showToast("Kode barang tidak ditemukan di inventaris");
       return;
     }
 
     if (qty <= 0) {
-      alert("Jumlah harus lebih dari 0");
+      showToast("Jumlah harus lebih dari 0");
       return;
     }
 
-    const selected = findInventoryByCode(code);
-
-    if (!selected) {
-      alert("Kode barang tidak ditemukan di inventaris");
-      return;
-    }
-
-    if (qty > selected.available) {
-      alert("Jumlah melebihi stok tersedia");
+    if (qty > Number(selected.available || 0)) {
+      showToast("Jumlah melebihi stok tersedia");
       return;
     }
 
     const existingIndex = borrowList.findIndex(
-      (item) => item.inventoryId === selected.id
+      (item) => String(item.code) === String(selected.code)
     );
 
     if (existingIndex >= 0) {
       const updated = [...borrowList];
-      const newQty = updated[existingIndex].qty + qty;
+      const newQty = Number(updated[existingIndex].qty) + qty;
 
-      if (newQty > selected.available) {
-        alert("Total jumlah alat ini melebihi stok tersedia");
+      if (newQty > Number(selected.available || 0)) {
+        showToast("Total jumlah alat ini melebihi stok tersedia");
         return;
       }
 
@@ -298,6 +458,7 @@ export default function InventoryPage() {
 
     setItemCodeInput("");
     setItemNameInput("");
+    setSelectedInventory(null);
     setSelectedQty(1);
   };
 
@@ -307,6 +468,11 @@ export default function InventoryPage() {
 
   const openPrintWindow = (qrItems) => {
     const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+      showToast("Popup print diblokir browser");
+      return;
+    }
 
     const html = qrItems
       .map(
@@ -327,47 +493,17 @@ export default function InventoryPage() {
         <head>
           <title>QR Pengembalian</title>
           <style>
-            body {
-              margin: 0;
-              padding: 20px;
-              font-family: Arial, sans-serif;
-              background: white;
-            }
-            .wrapper {
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-              gap: 16px;
-            }
-            .card {
-              border: 1px solid #d1d5db;
-              border-radius: 16px;
-              padding: 16px;
-              text-align: center;
-            }
-            .title {
-              font-weight: bold;
-              margin-bottom: 8px;
-            }
-            .item, .borrower, .code {
-              font-size: 12px;
-              margin-bottom: 4px;
-              word-break: break-word;
-            }
-            img {
-              width: 160px;
-              height: 160px;
-              object-fit: contain;
-              margin-top: 8px;
-            }
+            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: white; }
+            .wrapper { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+            .card { border: 1px solid #d1d5db; border-radius: 16px; padding: 16px; text-align: center; }
+            .title { font-weight: bold; margin-bottom: 8px; }
+            .item, .borrower, .code { font-size: 12px; margin-bottom: 4px; word-break: break-word; }
+            img { width: 160px; height: 160px; object-fit: contain; margin-top: 8px; }
           </style>
         </head>
         <body>
           <div class="wrapper">${html}</div>
-          <script>
-            window.onload = function() {
-              window.print();
-            }
-          </script>
+          <script>window.onload = function() { window.print(); }</script>
         </body>
       </html>
     `);
@@ -377,132 +513,131 @@ export default function InventoryPage() {
 
   const handleSaveBorrow = async () => {
     if (!borrowDate) {
-      alert("Tanggal pinjam wajib diisi");
+      showToast("Tanggal pinjam wajib diisi");
       return;
     }
 
     if (!borrowerId.trim()) {
-      alert("ID peminjam wajib diisi");
-      return;
-    }
-
-    if (!borrowerName.trim()) {
-      alert("Nama peminjam wajib diisi");
+      showToast("ID peminjam wajib diisi");
       return;
     }
 
     if (borrowList.length === 0) {
-      alert("Tambahkan minimal 1 alat");
+      showToast("Tambahkan minimal 1 alat");
       return;
     }
 
     try {
       setSaving(true);
 
-      const borrower = `${borrowerId.trim()} - ${borrowerName.trim()}`;
-      const qrItems = [];
-      const newHistory = [];
+      const res = await createBorrow({
+        waktu_pinjam: `${borrowDate} 08:00:00`,
+        diambil_oleh: borrowerId.trim(),
+        items: borrowList.map((item) => ({
+          kode_aset: item.code,
+          jumlah: item.qty,
+        })),
+      });
 
-      for (const item of borrowList) {
-        for (let i = 0; i < item.qty; i++) {
-          const trxCode = `TRX-${item.inventoryId}-${Date.now()}-${i}`;
-          const qrImage = await QRCode.toDataURL(trxCode);
+      const apiQrItems = res?.data?.data?.qrItems || [];
 
-          qrItems.push({
-            code: trxCode,
-            qrImage,
-            itemName: item.name,
-            borrower,
-          });
+      const printItems = [];
 
-          newHistory.push({
-            id: Date.now() + Math.random(),
-            inventoryId: item.inventoryId,
-            itemName: item.name,
-            borrower,
-            status: "borrowed",
-            borrowDate: new Date(`${borrowDate}T08:00:00`).toISOString(),
-            returnDate: null,
-            transactionCode: trxCode,
-          });
-        }
+      for (const qrItem of apiQrItems) {
+        const qrImage = await QRCode.toDataURL(qrItem.code);
+        printItems.push({
+          code: qrItem.code,
+          qrImage,
+          itemName: qrItem.itemName,
+          borrower: qrItem.borrower,
+        });
       }
 
-      setHistory((prev) => [...newHistory, ...prev]);
-
-      setInventory((prev) =>
-        prev.map((inv) => {
-          const found = borrowList.find((item) => item.inventoryId === inv.id);
-          if (!found) return inv;
-
-          return {
-            ...inv,
-            available: Number(inv.available) - Number(found.qty),
-          };
-        })
-      );
-
-      if (qrItems.length > 0) {
-        openPrintWindow(qrItems);
-      }
+      if (printItems.length > 0) openPrintWindow(printItems);
 
       setBorrowDate(new Date().toISOString().split("T")[0]);
       setBorrowerId("");
       setBorrowerName("");
       setItemCodeInput("");
       setItemNameInput("");
+      setSelectedInventory(null);
       setSelectedQty(1);
       setBorrowList([]);
 
-      alert("Peminjaman berhasil disimpan");
+      await loadData();
+      showToast("Peminjaman berhasil disimpan", "success");
     } catch (error) {
-      alert("Gagal menyimpan peminjaman");
+      showToast(error?.response?.data?.message || "Gagal menyimpan peminjaman");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCheckScanCode = () => {
+  const handleCheckScanCode = async () => {
     const code = scanCode.trim();
 
     if (!code) {
-      alert("Kode transaksi wajib diisi");
+      showToast("Kode transaksi wajib diisi");
       return;
     }
 
-    const found = history.find(
-      (item) => item.transactionCode === code && item.status === "borrowed"
-    );
-
-    if (!found) {
+    try {
+      const res = await checkReturn(code);
+      setScannedTransaction(res.data.data);
+    } catch (err) {
       setScannedTransaction(null);
-      alert("Kode tidak valid atau barang sudah dikembalikan");
-      return;
+      showToast(
+        err?.response?.data?.message ||
+          "Kode tidak valid atau barang sudah dikembalikan"
+      );
     }
-
-    setScannedTransaction(found);
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen bg-[#0b1120]">
+          <div className="text-slate-400 text-sm">Memuat data...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="w-full bg-[#0b1120] px-4 md:px-8 py-6 text-slate-100">
         <div className="space-y-6">
+          {toast && (
+            <div
+              className={`fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 min-w-[280px] max-w-[90vw] rounded-2xl border px-5 py-4 shadow-xl ${
+                toast.type === "success"
+                  ? "bg-emerald-950 border-emerald-500/40 text-emerald-300"
+                  : toast.type === "warning"
+                  ? "bg-amber-950 border-amber-500/40 text-amber-300"
+                  : "bg-red-950 border-red-500/40 text-red-300"
+              }`}
+            >
+              <span className="text-sm font-medium flex-1">{toast.text}</span>
+              <button
+                type="button"
+                onClick={closeToast}
+                className="shrink-0 text-current opacity-60 hover:opacity-100 text-lg leading-none"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           <div className="rounded-[28px] border border-blue-500/20 bg-gradient-to-r from-[#172554] via-[#1d4ed8] to-[#312e81] px-6 py-7 shadow-lg shadow-black/20">
             <h1 className="text-2xl md:text-3xl font-bold text-white">
               Sistem Peminjaman Alat
             </h1>
           </div>
 
-          {successMessage && (
-            <div className="rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-green-400">
-              {successMessage}
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatCard title="Total Stok" value={totalStock} valueClass="text-white" />
-            <StatCard title="Sedang Dipinjam" value={totalBorrowed} valueClass="text-amber-400" />
-            <StatCard title="Stok Tersedia" value={totalAvailable} valueClass="text-emerald-400" />
+            <StatCard title="Total Stok" value={stats.totalStock} valueClass="text-white" />
+            <StatCard title="Sedang Dipinjam" value={stats.totalBorrowed} valueClass="text-amber-400" />
+            <StatCard title="Stok Tersedia" value={stats.totalAvailable} valueClass="text-emerald-400" />
           </div>
 
           <div className="rounded-[24px] border border-slate-700 bg-[#111827] p-2 shadow-sm">
@@ -545,14 +680,22 @@ export default function InventoryPage() {
                           <input
                             type="text"
                             value={borrowerId}
-                            onChange={(e) => setBorrowerId(e.target.value)}
-                            placeholder="Scan QR ID peminjam"
+                            onChange={(e) => {
+                              setBorrowerId(e.target.value);
+                              setBorrowerName("");
+                            }}
+                            onBlur={() => {
+                              if (borrowerId.trim()) {
+                                fetchBorrowerById(borrowerId.trim());
+                              }
+                            }}
+                            placeholder="Scan ID card atau ketik ID karyawan"
                             className="w-full rounded-2xl border border-slate-600 bg-[#0f172a] px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
                           />
                           <button
                             type="button"
                             onClick={() => handleStartScanner("borrower")}
-                            className="rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-500"
+                            className="rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-500 shrink-0"
                           >
                             Scan
                           </button>
@@ -580,7 +723,7 @@ export default function InventoryPage() {
                         type="text"
                         value={borrowerName}
                         onChange={(e) => setBorrowerName(e.target.value)}
-                        placeholder="Nama peminjam akan terisi dari QR atau bisa diketik manual"
+                        placeholder="Otomatis dari scan atau ketik manual"
                         className="w-full rounded-2xl border border-slate-600 bg-[#0f172a] px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
                       />
                     </InputGroup>
@@ -592,11 +735,9 @@ export default function InventoryPage() {
                         1
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-white">
-                          Input Detail Alat
-                        </h3>
+                        <h3 className="text-lg font-semibold text-white">Input Detail Alat</h3>
                         <p className="text-sm text-slate-400">
-                          Isi kode barang, nama barang, dan jumlah
+                          Isi kode barang, nama barang akan muncul otomatis
                         </p>
                       </div>
                     </div>
@@ -606,27 +747,26 @@ export default function InventoryPage() {
                         <input
                           type="text"
                           value={itemCodeInput}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setItemCodeInput(value);
-
-                            const found = findInventoryByCode(value);
-                            if (found) {
-                              setItemNameInput(found.name);
-                            }
-                          }}
-                          placeholder="Cth: BRG001"
+                          onChange={(e) => handleSelectInventoryByInput(e.target.value)}
+                          placeholder="Cth: 0001"
                           className="w-full rounded-2xl border border-slate-600 bg-[#111827] px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
                         />
+
+                        {selectedInventory && (
+                          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                            Stok: {selectedInventory.stock} | Tersedia:{" "}
+                            {selectedInventory.available}
+                          </div>
+                        )}
                       </InputGroup>
 
                       <InputGroup label="Nama Barang">
                         <input
                           type="text"
                           value={itemNameInput}
-                          onChange={(e) => setItemNameInput(e.target.value)}
-                          placeholder="Nama alat..."
-                          className="w-full rounded-2xl border border-slate-600 bg-[#111827] px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
+                          readOnly
+                          placeholder="Otomatis dari kode barang"
+                          className="w-full rounded-2xl border border-slate-600 bg-[#111827] px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none"
                         />
                       </InputGroup>
 
@@ -653,19 +793,10 @@ export default function InventoryPage() {
 
                   <div className="rounded-[24px] border border-slate-700 overflow-hidden">
                     <div className="border-b border-slate-700 bg-[#0f172a] px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-white font-bold">
-                          2
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-white">
-                            Daftar Alat Dipinjam
-                          </h3>
-                          <p className="text-sm text-slate-400">
-                            Periksa daftar alat sebelum simpan
-                          </p>
-                        </div>
-                      </div>
+                      <h3 className="text-lg font-semibold text-white">Daftar Alat Dipinjam</h3>
+                      <p className="text-sm text-slate-400">
+                        Periksa daftar alat sebelum simpan
+                      </p>
                     </div>
 
                     <div className="overflow-x-auto">
@@ -675,7 +806,7 @@ export default function InventoryPage() {
                             <th className="px-5 py-4 text-left font-semibold">Kode</th>
                             <th className="px-5 py-4 text-left font-semibold">Nama Barang</th>
                             <th className="px-5 py-4 text-left font-semibold">Jumlah</th>
-                            <th className="px-5 py-4 text-left font-semibold">Sisa Stok</th>
+                            <th className="px-5 py-4 text-left font-semibold">Stok Tersedia</th>
                             <th className="px-5 py-4 text-center font-semibold">Aksi</th>
                           </tr>
                         </thead>
@@ -688,7 +819,7 @@ export default function InventoryPage() {
                             </tr>
                           ) : (
                             borrowList.map((item, index) => (
-                              <tr key={`${item.inventoryId}-${index}`} className="border-t border-slate-700">
+                              <tr key={`${item.code}-${index}`} className="border-t border-slate-700">
                                 <td className="px-5 py-4 font-mono text-slate-300">{item.code}</td>
                                 <td className="px-5 py-4 font-medium text-slate-100">{item.name}</td>
                                 <td className="px-5 py-4 text-slate-300">{item.qty} unit</td>
@@ -711,11 +842,9 @@ export default function InventoryPage() {
 
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between rounded-[24px] border border-slate-700 bg-[#0f172a] px-5 py-4">
                     <div>
-                      <p className="text-sm font-medium text-white">
-                        Total item dalam daftar
-                      </p>
+                      <p className="text-sm font-medium text-white">Total item dalam daftar</p>
                       <p className="text-sm text-slate-400">
-                        {borrowList.reduce((sum, item) => sum + item.qty, 0)} alat akan diproses
+                        {borrowList.reduce((sum, item) => sum + Number(item.qty || 0), 0)} alat akan diproses
                       </p>
                     </div>
 
@@ -741,13 +870,20 @@ export default function InventoryPage() {
                     <MiniCard
                       label="Peminjam"
                       value={
-                        borrowerName ? `${borrowerId || "-"} • ${borrowerName}` : "-"
+                        borrowerId
+                          ? borrowerName
+                            ? `${borrowerId} • ${borrowerName}`
+                            : borrowerId
+                          : "-"
                       }
                     />
                     <MiniCard label="Jumlah Jenis Alat" value={borrowList.length} />
                     <MiniCard
                       label="Total Unit"
-                      value={borrowList.reduce((sum, item) => sum + item.qty, 0)}
+                      value={borrowList.reduce(
+                        (sum, item) => sum + Number(item.qty || 0),
+                        0
+                      )}
                     />
                   </div>
                 </Panel>
@@ -778,63 +914,59 @@ export default function InventoryPage() {
                           Scan Kode Pengembalian
                         </h3>
                         <p className="text-sm text-slate-400">
-                          Tempel hasil scan QR atau ketik kode transaksi
+                          Tempel hasil scan QR atau ketik kode PMJ-...
                         </p>
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <InputGroup label="Kode Transaksi">
-                        <div className="space-y-3">
-                          <div className="flex flex-col md:flex-row gap-3">
-                            <input
-                              ref={scanRef}
-                              type="text"
-                              value={scanCode}
-                              onChange={(e) => setScanCode(e.target.value)}
-                              placeholder="Scan QR pengembalian atau ketik kode transaksi"
-                              className="w-full rounded-2xl border border-slate-600 bg-[#111827] px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
+                    <InputGroup label="Kode Transaksi">
+                      <div className="space-y-3">
+                        <div className="flex flex-col md:flex-row gap-3">
+                          <input
+                            ref={scanRef}
+                            type="text"
+                            value={scanCode}
+                            onChange={(e) => setScanCode(e.target.value)}
+                            placeholder="Scan QR atau ketik kode PMJ-..."
+                            className="w-full rounded-2xl border border-slate-600 bg-[#111827] px-4 py-3 text-slate-100 placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleStartScanner("return")}
+                            className="rounded-2xl bg-cyan-600 px-5 py-3 font-semibold text-white hover:bg-cyan-500 shrink-0"
+                          >
+                            Scan QR
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCheckScanCode}
+                            className="rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-500 shrink-0"
+                          >
+                            Cek
+                          </button>
+                        </div>
+
+                        {!isNative && scanning && scanMode === "return" && (
+                          <div className="rounded-2xl border border-slate-700 bg-black p-3">
+                            <div
+                              id="reader-return-inline"
+                              className="w-full min-h-[240px] overflow-hidden rounded-xl"
                             />
                             <button
-                              type="button"
-                              onClick={() => handleStartScanner("return")}
-                              className="rounded-2xl bg-cyan-600 px-5 py-3 font-semibold text-white hover:bg-cyan-500"
+                              onClick={handleStopScanner}
+                              className="mt-3 w-full rounded-2xl bg-red-600 px-4 py-3 font-semibold text-white hover:bg-red-500"
                             >
-                              Scan QR
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleCheckScanCode}
-                              className="rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-500"
-                            >
-                              Cek
+                              Stop Scan
                             </button>
                           </div>
-
-                          {!isNative && scanning && scanMode === "return" && (
-                            <div className="rounded-2xl border border-slate-700 bg-black p-3">
-                              <div
-                                id="reader-return-inline"
-                                className="w-full min-h-[240px] overflow-hidden rounded-xl"
-                              />
-                              <button
-                                onClick={handleStopScanner}
-                                className="mt-3 w-full rounded-2xl bg-red-600 px-4 py-3 font-semibold text-white hover:bg-red-500"
-                              >
-                                Stop Scan
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </InputGroup>
-                    </div>
+                        )}
+                      </div>
+                    </InputGroup>
                   </div>
 
                   <div className="rounded-[24px] border border-slate-700 bg-[#0f172a] p-5">
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold text-white">
-                        Hasil Scan
-                      </h3>
+                      <h3 className="text-lg font-semibold text-white">Hasil Scan</h3>
                       <p className="text-sm text-slate-400">
                         Detail transaksi yang akan dikembalikan
                       </p>
@@ -847,7 +979,11 @@ export default function InventoryPage() {
                         <InfoRow label="Peminjam" value={scannedTransaction.borrower} />
                         <InfoRow
                           label="Tanggal Pinjam"
-                          value={new Date(scannedTransaction.borrowDate).toLocaleString("id-ID")}
+                          value={
+                            scannedTransaction.borrowDate
+                              ? new Date(scannedTransaction.borrowDate).toLocaleString("id-ID")
+                              : "-"
+                          }
                         />
                         <div className="pt-2">
                           <button
@@ -903,7 +1039,10 @@ export default function InventoryPage() {
 
                           <div className="flex flex-col gap-2 lg:items-end">
                             <div className="text-sm text-slate-400">
-                              Pinjam: {new Date(item.borrowDate).toLocaleString("id-ID")}
+                              Pinjam:{" "}
+                              {item.borrowDate
+                                ? new Date(item.borrowDate).toLocaleString("id-ID")
+                                : "-"}
                             </div>
                             <StatusBadge status={item.status} />
                             <button
@@ -925,9 +1064,11 @@ export default function InventoryPage() {
           {activeTab === "riwayat" && (
             <div className="rounded-[28px] border border-slate-700 bg-[#111827] p-8 shadow-sm">
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-white">Riwayat Peminjaman</h2>
+                <h2 className="text-2xl font-bold text-white">
+                  Riwayat Peminjaman
+                </h2>
                 <p className="mt-2 text-sm text-slate-400">
-                  Semua transaksi pada halaman ini masih dummy frontend
+                  {history.length} transaksi tercatat
                 </p>
               </div>
 
@@ -958,16 +1099,16 @@ export default function InventoryPage() {
                         <div className="flex flex-col gap-2 text-sm text-slate-400 lg:items-end">
                           {item.borrowDate && (
                             <div>
-                              Pinjam: {new Date(item.borrowDate).toLocaleString("id-ID")}
+                              Pinjam:{" "}
+                              {new Date(item.borrowDate).toLocaleString("id-ID")}
                             </div>
                           )}
-
                           {item.returnDate && (
                             <div>
-                              Kembali: {new Date(item.returnDate).toLocaleString("id-ID")}
+                              Kembali:{" "}
+                              {new Date(item.returnDate).toLocaleString("id-ID")}
                             </div>
                           )}
-
                           <StatusBadge status={item.status} />
                         </div>
                       </div>
@@ -988,9 +1129,7 @@ function TabButton({ active, onClick, children }) {
     <button
       onClick={onClick}
       className={`rounded-2xl py-3 text-sm font-semibold transition ${
-        active
-          ? "bg-blue-600 text-white shadow-md"
-          : "text-slate-400 hover:bg-slate-800"
+        active ? "bg-blue-600 text-white shadow-md" : "text-slate-400 hover:bg-slate-800"
       }`}
     >
       {children}
